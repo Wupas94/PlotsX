@@ -5,37 +5,77 @@ api-version: '1.20'
 depend: [Vault]
 softdepend: [CoreProtect]
 author: Wupas94
-description: Zaawansowany system działek z wieloma funkcjami
+description: |
+  Zaawansowany system działek z wieloma funkcjami:
+  - System poziomów i ulepszeń działek
+  - System ekonomii i handlu działkami
+  - System flag i uprawnień
+  - System zadań i nagród
+  - Integracja z CoreProtect
+  - Wsparcie dla schematów
+  - System ocen i wizyt
 website: https://github.com/Wupas94/PlotsX
 
 commands:
   plot:
     description: Główna komenda do zarządzania działkami
     usage: |
-      §6PlotsX - Lista komend:
-      §e/plot claim §7- Zajmij działkę
-      §e/plot delete §7- Usuń działkę
-      §e/plot home §7- Teleportuj się na działkę
-      §e/plot info §7- Informacje o działce
-      §e/plot list §7- Lista twoich działek
-      §e/plot trust <gracz> §7- Dodaj zaufanego gracza
-      §e/plot untrust <gracz> §7- Usuń zaufanego gracza
-      §e/plot visit <gracz> §7- Odwiedź działkę gracza
-      §e/plot rate <1-5> §7- Oceń działkę
-      §e/plot flags §7- Zarządzaj flagami działki
-      §e/plot biome §7- Zmień biom działki
+      §6PlotsX v${project.version} - Lista komend:
+      
+      §eZarządzanie działką:
+      §7/plot claim §8- §fZajmij działkę
+      §7/plot delete §8- §fUsuń działkę
+      §7/plot home §8- §fTeleportuj się na działkę
+      §7/plot info §8- §fInformacje o działce
+      §7/plot list §8- §fLista twoich działek
+      
+      §eZaufani gracze:
+      §7/plot trust <gracz> §8- §fDodaj zaufanego gracza
+      §7/plot untrust <gracz> §8- §fUsuń zaufanego gracza
+      
+      §eSystem wizyt:
+      §7/plot visit <gracz> §8- §fOdwiedź działkę gracza
+      §7/plot rate <1-5> §8- §fOceń działkę
+      
+      §eUstawienia działki:
+      §7/plot flags §8- §fZarządzaj flagami działki
+      §7/plot biome §8- §fZmień biom działki
+      
+      §eSystem ekonomii:
+      §7/plot sell <cena> §8- §fWystaw działkę na sprzedaż
+      §7/plot buy §8- §fKup wystawioną działkę
+      §7/plot rent §8- §fWynajmij działkę
+      
+      §eSystem zadań:
+      §7/plot tasks §8- §fSprawdź dostępne zadania
+      §7/plot rewards §8- §fOdbierz nagrody
     aliases: [p, plots, plotsx]
 
 permissions:
   plotsx.*:
     description: Dostęp do wszystkich funkcji pluginu
+    default: op
     children:
       plotsx.admin: true
       plotsx.user: true
       plotsx.coreprotect.*: true
+      plotsx.level.*: true
+      plotsx.visit.*: true
+      plotsx.flags.*: true
+      plotsx.schematic.*: true
+      plotsx.trust.*: true
+      plotsx.tasks.*: true
+      plotsx.economy.*: true
+      plotsx.biome.*: true
+      plotsx.notification.*: true
+      plotsx.metrics.*: true
+      plotsx.backup.*: true
+      plotsx.cache.*: true
+      plotsx.async.*: true
   
   plotsx.admin:
     description: Dostęp do komend administracyjnych
+    default: op
     children:
       plotsx.admin.bypass: true
       plotsx.admin.reload: true
@@ -46,6 +86,7 @@ permissions:
   # CoreProtect Integration
   plotsx.coreprotect.*:
     description: Dostęp do funkcji CoreProtect
+    default: op
     children:
       plotsx.coreprotect.lookup: true
       plotsx.coreprotect.rollback: true
@@ -54,6 +95,7 @@ permissions:
 
   plotsx.user:
     description: Dostęp do podstawowych komend
+    default: true
     children:
       plotsx.plot.claim: true
       plotsx.plot.delete: true
@@ -70,6 +112,7 @@ permissions:
   # Level System
   plotsx.level.*:
     description: Dostęp do systemu poziomów
+    default: true
     children:
       plotsx.level.upgrade: true
       plotsx.level.info: true
@@ -77,6 +120,7 @@ permissions:
   # Visit System
   plotsx.visit.*:
     description: Dostęp do systemu wizyt
+    default: true
     children:
       plotsx.visit.teleport: true
       plotsx.visit.rate: true
@@ -86,6 +130,7 @@ permissions:
   # Flag System
   plotsx.flags.*:
     description: Dostęp do systemu flag
+    default: true
     children:
       plotsx.flags.set: true
       plotsx.flags.weather: true
@@ -98,6 +143,7 @@ permissions:
   # Schematic System
   plotsx.schematic.*:
     description: Dostęp do systemu schematów
+    default: op
     children:
       plotsx.schematic.save: true
       plotsx.schematic.load: true
@@ -108,6 +154,7 @@ permissions:
   # Trust System
   plotsx.trust.*:
     description: Dostęp do systemu zaufanych graczy
+    default: true
     children:
       plotsx.trust.add: true
       plotsx.trust.remove: true
@@ -117,6 +164,7 @@ permissions:
   # Task System
   plotsx.tasks.*:
     description: Dostęp do systemu zadań
+    default: true
     children:
       plotsx.tasks.view: true
       plotsx.tasks.progress: true
@@ -126,6 +174,7 @@ permissions:
   # Economy System
   plotsx.economy.*:
     description: Dostęp do systemu ekonomii
+    default: true
     children:
       plotsx.economy.sell: true
       plotsx.economy.buy: true
@@ -136,8 +185,306 @@ permissions:
   # Biome System
   plotsx.biome.*:
     description: Dostęp do systemu biomów
+    default: true
     children:
       plotsx.biome.set: true
       plotsx.biome.growth: true
       plotsx.biome.mobs: true
-      plotsx.biome.spread: true 
+      plotsx.biome.spread: true
+
+  # Notification System
+  plotsx.notification.*:
+    description: Dostęp do systemu powiadomień
+    default: op
+    children:
+      plotsx.notification.receive: true
+      plotsx.notification.send: true
+      plotsx.notification.clear: true
+      plotsx.notification.list: true
+      plotsx.notification.priority: true
+
+  # Metrics System
+  plotsx.metrics.*:
+    description: Dostęp do systemu metryk
+    default: op
+    children:
+      plotsx.metrics.view: true
+      plotsx.metrics.clear: true
+      plotsx.metrics.export: true
+      plotsx.metrics.health: true
+
+  # Backup System
+  plotsx.backup.*:
+    description: Dostęp do systemu kopii zapasowych
+    default: op
+    children:
+      plotsx.backup.create: true
+      plotsx.backup.restore: true
+      plotsx.backup.delete: true
+      plotsx.backup.list: true
+      plotsx.backup.auto: true
+
+  # Cache System
+  plotsx.cache.*:
+    description: Dostęp do systemu cache
+    default: op
+    children:
+      plotsx.cache.view: true
+      plotsx.cache.clear: true
+      plotsx.cache.stats: true
+      plotsx.cache.optimize: true
+
+  # Async System
+  plotsx.async.*:
+    description: Dostęp do systemu asynchronicznego
+    default: op
+    children:
+      plotsx.async.view: true
+      plotsx.async.clear: true
+      plotsx.async.stats: true
+      plotsx.async.optimize: true
+
+  # Uprawnienia administracyjne
+  plotsx.admin.reload:
+    description: Pozwala na przeładowanie pluginu
+    default: op
+  plotsx.admin.save:
+    description: Pozwala na zapisanie wszystkich danych
+    default: op
+  plotsx.admin.load:
+    description: Pozwala na załadowanie wszystkich danych
+    default: op
+  plotsx.admin.clear:
+    description: Pozwala na wyczyszczenie wszystkich danych
+    default: op
+  plotsx.admin.reset:
+    description: Pozwala na zresetowanie wszystkich danych
+    default: op
+  plotsx.admin.delete:
+    description: Pozwala na usunięcie działki
+    default: op
+  plotsx.admin.give:
+    description: Pozwala na nadanie działki
+    default: op
+  plotsx.admin.take:
+    description: Pozwala na odebranie działki
+    default: op
+  plotsx.admin.setowner:
+    description: Pozwala na ustawienie właściciela działki
+    default: op
+  plotsx.admin.setbiome:
+    description: Pozwala na ustawienie biomu działki
+    default: op
+  plotsx.admin.setweather:
+    description: Pozwala na ustawienie pogody na działce
+    default: op
+  plotsx.admin.settime:
+    description: Pozwala na ustawienie czasu na działce
+    default: op
+  plotsx.admin.setborder:
+    description: Pozwala na ustawienie granic działki
+    default: op
+  plotsx.admin.expand:
+    description: Pozwala na rozszerzenie działki
+    default: op
+  plotsx.admin.shrink:
+    description: Pozwala na zmniejszenie działki
+    default: op
+  plotsx.admin.move:
+    description: Pozwala na przeniesienie działki
+    default: op
+  plotsx.admin.merge:
+    description: Pozwala na połączenie działek
+    default: op
+  plotsx.admin.split:
+    description: Pozwala na podział działki
+    default: op
+  plotsx.admin.swap:
+    description: Pozwala na zamianę miejscami działek
+    default: op
+  plotsx.admin.list:
+    description: Pozwala na wyświetlenie listy wszystkich działek
+    default: op
+  plotsx.admin.search:
+    description: Pozwala na wyszukiwanie działek
+    default: op
+  plotsx.admin.stats:
+    description: Pozwala na wyświetlenie statystyk pluginu
+    default: op
+  plotsx.admin.notifications:
+    description: Pozwala na zarządzanie powiadomieniami
+    default: op
+  plotsx.admin.metrics:
+    description: Pozwala na zarządzanie metrykami
+    default: op
+  plotsx.admin.backup:
+    description: Pozwala na zarządzanie kopiami zapasowymi
+    default: op
+  plotsx.admin.cache:
+    description: Pozwala na zarządzanie cache
+    default: op
+  plotsx.admin.async:
+    description: Pozwala na zarządzanie systemem asynchronicznym
+    default: op
+
+  # Uprawnienia użytkownika
+  plotsx.user.claim:
+    description: Pozwala na zakładanie działek
+    default: true
+  plotsx.user.info:
+    description: Pozwala na wyświetlenie informacji o działce
+    default: true
+  plotsx.user.add:
+    description: Pozwala na dodawanie współwłaścicieli
+    default: true
+  plotsx.user.remove:
+    description: Pozwala na usuwanie współwłaścicieli
+    default: true
+  plotsx.user.flags:
+    description: Pozwala na zarządzanie flagami działki
+    default: true
+  plotsx.user.trust:
+    description: Pozwala na dodawanie zaufanych graczy
+    default: true
+  plotsx.user.untrust:
+    description: Pozwala na usuwanie zaufanych graczy
+    default: true
+  plotsx.user.visit:
+    description: Pozwala na odwiedzanie działek
+    default: true
+  plotsx.user.home:
+    description: Pozwala na teleportację do swojej działki
+    default: true
+  plotsx.user.backup:
+    description: Pozwala na tworzenie kopii zapasowych działki
+    default: true
+  plotsx.user.restore:
+    description: Pozwala na przywracanie kopii zapasowych działki
+    default: true
+  plotsx.user.biome:
+    description: Pozwala na zmianę biomu działki
+    default: true
+  plotsx.user.weather:
+    description: Pozwala na zmianę pogody na działce
+    default: true
+  plotsx.user.time:
+    description: Pozwala na zmianę czasu na działce
+    default: true
+  plotsx.user.border:
+    description: Pozwala na pokazywanie/ukrywanie granic działki
+    default: true
+  plotsx.user.expand:
+    description: Pozwala na rozszerzenie działki
+    default: true
+  plotsx.user.shrink:
+    description: Pozwala na zmniejszenie działki
+    default: true
+  plotsx.user.move:
+    description: Pozwala na przeniesienie działki
+    default: true
+  plotsx.user.merge:
+    description: Pozwala na połączenie działek
+    default: true
+  plotsx.user.split:
+    description: Pozwala na podział działki
+    default: true
+  plotsx.user.swap:
+    description: Pozwala na zamianę miejscami działek
+    default: true
+  plotsx.user.clear:
+    description: Pozwala na wyczyszczenie działki
+    default: true
+  plotsx.user.reset:
+    description: Pozwala na zresetowanie działki
+    default: true
+  plotsx.user.save:
+    description: Pozwala na zapisywanie schematów działki
+    default: true
+  plotsx.user.load:
+    description: Pozwala na ładowanie schematów działki
+    default: true
+  plotsx.user.list:
+    description: Pozwala na wyświetlenie listy swoich działek
+    default: true
+  plotsx.user.search:
+    description: Pozwala na wyszukiwanie działek
+    default: true
+  plotsx.user.stats:
+    description: Pozwala na wyświetlenie swoich statystyk
+    default: true
+
+  # Uprawnienia powiadomień
+  plotsx.notification.receive:
+    description: Pozwala na otrzymywanie powiadomień
+    default: op
+  plotsx.notification.send:
+    description: Pozwala na wysyłanie powiadomień
+    default: op
+  plotsx.notification.clear:
+    description: Pozwala na czyszczenie powiadomień
+    default: op
+  plotsx.notification.list:
+    description: Pozwala na wyświetlenie listy powiadomień
+    default: op
+  plotsx.notification.priority:
+    description: Pozwala na zarządzanie priorytetami powiadomień
+    default: op
+
+  # Uprawnienia metryk
+  plotsx.metrics.view:
+    description: Pozwala na wyświetlenie metryk
+    default: op
+  plotsx.metrics.clear:
+    description: Pozwala na czyszczenie metryk
+    default: op
+  plotsx.metrics.export:
+    description: Pozwala na eksport metryk
+    default: op
+  plotsx.metrics.health:
+    description: Pozwala na sprawdzanie zdrowia pluginu
+    default: op
+
+  # Uprawnienia kopii zapasowych
+  plotsx.backup.create:
+    description: Pozwala na tworzenie kopii zapasowych
+    default: op
+  plotsx.backup.restore:
+    description: Pozwala na przywracanie kopii zapasowych
+    default: op
+  plotsx.backup.delete:
+    description: Pozwala na usuwanie kopii zapasowych
+    default: op
+  plotsx.backup.list:
+    description: Pozwala na wyświetlenie listy kopii zapasowych
+    default: op
+  plotsx.backup.auto:
+    description: Pozwala na zarządzanie automatycznymi kopiami zapasowymi
+    default: op
+
+  # Uprawnienia cache
+  plotsx.cache.view:
+    description: Pozwala na wyświetlenie stanu cache
+    default: op
+  plotsx.cache.clear:
+    description: Pozwala na czyszczenie cache
+    default: op
+  plotsx.cache.stats:
+    description: Pozwala na wyświetlenie statystyk cache
+    default: op
+  plotsx.cache.optimize:
+    description: Pozwala na optymalizację cache
+    default: op
+
+  # Uprawnienia asynchroniczne
+  plotsx.async.view:
+    description: Pozwala na wyświetlenie stanu systemu asynchronicznego
+    default: op
+  plotsx.async.clear:
+    description: Pozwala na czyszczenie kolejki zadań asynchronicznych
+    default: op
+  plotsx.async.stats:
+    description: Pozwala na wyświetlenie statystyk systemu asynchronicznego
+    default: op
+  plotsx.async.optimize:
+    description: Pozwala na optymalizację systemu asynchronicznego
+    default: op 

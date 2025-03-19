@@ -1,154 +1,254 @@
 package com.plotsx
 
 import com.plotsx.commands.PlotCommand
-import com.plotsx.managers.PlotManager
-import com.plotsx.managers.ProtectionManager
-import com.plotsx.systems.biome.BiomeManager
-import com.plotsx.systems.economy.EconomyManager
-import com.plotsx.systems.flags.FlagManager
-import com.plotsx.systems.levels.PlotLevelManager
-import com.plotsx.systems.schematics.SchematicManager
-import com.plotsx.systems.tasks.TaskManager
-import com.plotsx.systems.trust.TrustManager
-import com.plotsx.systems.visit.VisitManager
 import com.plotsx.integrations.CoreProtectIntegration
-import net.milkbowl.vault.economy.Economy
+import com.plotsx.managers.*
+import com.plotsx.models.Plot
+import com.plotsx.utils.*
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.concurrent.TimeUnit
 
+/**
+ * Główna klasa pluginu PlotsX
+ * 
+ * @author Wupas94
+ * @since 1.0
+ */
 class PlotsX : JavaPlugin() {
+    // Instancje menedżerów
     lateinit var plotManager: PlotManager
         private set
     lateinit var protectionManager: ProtectionManager
         private set
-    lateinit var levelManager: PlotLevelManager
-        private set
-    lateinit var visitManager: VisitManager
-        private set
-    lateinit var flagManager: FlagManager
-        private set
     lateinit var schematicManager: SchematicManager
-        private set
-    lateinit var trustManager: TrustManager
         private set
     lateinit var taskManager: TaskManager
         private set
-    lateinit var economyManager: EconomyManager
+    lateinit var trustManager: TrustManager
         private set
-    lateinit var biomeManager: BiomeManager
+    lateinit var visitManager: VisitManager
         private set
-    lateinit var coreProtect: CoreProtectIntegration
+    lateinit var weatherManager: WeatherManager
         private set
-    
-    var economy: Economy? = null
+    lateinit var worldManager: WorldManager
+        private set
+    lateinit var coreProtectIntegration: CoreProtectIntegration
+        private set
+    lateinit var cacheManager: CacheManager
+        private set
+    lateinit var asyncDataManager: AsyncDataManager
+        private set
+    lateinit var metricsManager: MetricsManager
+        private set
+    lateinit var backupManager: BackupManager
+        private set
+    lateinit var notificationManager: NotificationManager
+        private set
+
+    // Instancje narzędzi
+    lateinit var database: Database
+        private set
+    lateinit var messages: Messages
+        private set
+    lateinit var permissions: Permissions
+        private set
+    lateinit var settings: Settings
         private set
 
     override fun onEnable() {
-        // Create data folder
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs()
-        }
+        // Inicjalizacja narzędzi
+        settings = Settings(this)
+        messages = Messages(this)
+        permissions = Permissions(this)
+        database = Database(this)
 
-        // Setup integrations
-        setupEconomy()
-        setupCoreProtect()
-
-        // Initialize managers
+        // Inicjalizacja menedżerów
         plotManager = PlotManager(this)
         protectionManager = ProtectionManager(this)
-        levelManager = PlotLevelManager(this)
-        visitManager = VisitManager(this)
-        flagManager = FlagManager(this)
         schematicManager = SchematicManager(this)
-        trustManager = TrustManager(this)
         taskManager = TaskManager(this)
-        economyManager = EconomyManager(this)
-        biomeManager = BiomeManager(this)
+        trustManager = TrustManager(this)
+        visitManager = VisitManager(this)
+        weatherManager = WeatherManager(this)
+        worldManager = WorldManager(this)
+        coreProtectIntegration = CoreProtectIntegration(this)
+        cacheManager = CacheManager()
+        asyncDataManager = AsyncDataManager(this)
+        metricsManager = MetricsManager(this)
+        backupManager = BackupManager(this)
+        notificationManager = NotificationManager(this)
 
-        // Register commands
+        // Rejestracja komend
         getCommand("plot")?.setExecutor(PlotCommand(this))
 
-        // Load data
+        // Inicjalizacja integracji
+        if (!coreProtectIntegration.initialize()) {
+            notificationManager.addNotification(
+                "integration",
+                "Nie udało się zainicjalizować integracji z CoreProtect!",
+                NotificationManager.NotificationPriority.HIGH
+            )
+        }
+
+        // Załadowanie danych
         loadData()
 
-        // Start cleanup tasks
-        startCleanupTasks()
+        // Uruchomienie zadań
+        startTasks()
 
-        logger.info("PlotsX has been enabled!")
+        logger.info("PlotsX został pomyślnie włączony!")
     }
 
     override fun onDisable() {
-        // Save all data
+        // Zatrzymanie zadań
+        stopTasks()
+
+        // Zapisanie danych
         saveData()
-        
-        logger.info("PlotsX has been disabled!")
+
+        // Zatrzymanie menedżerów
+        asyncDataManager.shutdown()
+        metricsManager.clearMetrics()
+        notificationManager.clearNotifications()
+
+        logger.info("PlotsX został pomyślnie wyłączony!")
     }
 
-    private fun setupEconomy() {
-        if (server.pluginManager.getPlugin("Vault") == null) {
-            logger.warning("Vault not found! Economy features will be disabled.")
-            return
-        }
-
-        val rsp = server.servicesManager.getRegistration(Economy::class.java)
-        if (rsp == null) {
-            logger.warning("No economy plugin found! Economy features will be disabled.")
-            return
-        }
-
-        economy = rsp.provider
-        logger.info("Successfully hooked into Vault economy!")
-    }
-
-    private fun setupCoreProtect() {
-        coreProtect = CoreProtectIntegration(this)
-        coreProtect.initialize()
-    }
-
+    /**
+     * Ładuje dane pluginu
+     */
     private fun loadData() {
-        plotManager.loadData()
-        levelManager.loadData()
-        visitManager.loadData()
-        flagManager.loadData()
-        schematicManager.loadData()
-        trustManager.loadData()
-        taskManager.loadData()
-        economyManager.loadData()
-        biomeManager.loadData()
-    }
-
-    private fun saveData() {
-        plotManager.saveData()
-        levelManager.saveData()
-        visitManager.saveData()
-        flagManager.saveData()
-        schematicManager.saveData()
-        trustManager.saveData()
-        taskManager.saveData()
-        economyManager.saveData()
-        biomeManager.saveData()
-    }
-
-    private fun startCleanupTasks() {
-        // Cleanup expired rentals and auctions
-        server.scheduler.runTaskTimer(this, {
-            economyManager.cleanupExpiredRentals()
-            economyManager.cleanupExpiredAuctions()
-        }, 20L * 60L, 20L * 60L) // Run every minute
-
-        // Cleanup expired trust
-        server.scheduler.runTaskTimer(this, {
-            trustManager.cleanupExpiredTrust()
-        }, 20L * 60L, 20L * 60L) // Run every minute
-    }
-
-    companion object {
-        const val PLOT_SIZE = 50 // Domyślny rozmiar działki
-        const val PLOT_HEIGHT = 256 // Maksymalna wysokość działki
+        val startTime = System.currentTimeMillis()
         
-        // Stałe dla wiadomości
-        const val PREFIX = "<gradient:#00b4d8:#0077b6>[PlotsX]</gradient> "
-        const val SUCCESS_COLOR = "<#2ecc71>"
-        const val ERROR_COLOR = "<#e74c3c>"
-        const val INFO_COLOR = "<#3498db>"
+        try {
+            // Załadowanie działek
+            val plots = database.loadAllPlots()
+            plots.forEach { plot ->
+                cacheManager.updatePlot(plot)
+                plotManager.registerPlot(plot)
+            }
+
+            // Załadowanie schematów
+            schematicManager.loadSchematics()
+
+            // Załadowanie zadań
+            taskManager.loadTasks()
+
+            // Załadowanie ufanych graczy
+            trustManager.loadTrustedPlayers()
+
+            // Załadowanie wizyt
+            visitManager.loadVisits()
+
+            val loadTime = System.currentTimeMillis() - startTime
+            metricsManager.recordTiming("data_load", loadTime)
+            logger.info("Dane zostały załadowane w ${loadTime}ms")
+        } catch (e: Exception) {
+            metricsManager.recordError("data_load_error")
+            notificationManager.addNotification(
+                "error",
+                "Błąd podczas ładowania danych: ${e.message}",
+                NotificationManager.NotificationPriority.HIGH
+            )
+            logger.severe("Błąd podczas ładowania danych: ${e.message}")
+        }
     }
+
+    /**
+     * Zapisuje dane pluginu
+     */
+    private fun saveData() {
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            // Zapisanie działek
+            plotManager.getAllPlots().forEach { plot ->
+                asyncDataManager.queueSave(plot)
+            }
+
+            // Zapisanie schematów
+            schematicManager.saveSchematics()
+
+            // Zapisanie zadań
+            taskManager.saveTasks()
+
+            // Zapisanie ufanych graczy
+            trustManager.saveTrustedPlayers()
+
+            // Zapisanie wizyt
+            visitManager.saveVisits()
+
+            val saveTime = System.currentTimeMillis() - startTime
+            metricsManager.recordTiming("data_save", saveTime)
+            logger.info("Dane zostały zapisane w ${saveTime}ms")
+        } catch (e: Exception) {
+            metricsManager.recordError("data_save_error")
+            notificationManager.addNotification(
+                "error",
+                "Błąd podczas zapisywania danych: ${e.message}",
+                NotificationManager.NotificationPriority.HIGH
+            )
+            logger.severe("Błąd podczas zapisywania danych: ${e.message}")
+        }
+    }
+
+    /**
+     * Uruchamia zadania pluginu
+     */
+    private fun startTasks() {
+        // Zadanie aktualizacji pogody
+        object : org.bukkit.scheduler.BukkitRunnable() {
+            override fun run() {
+                weatherManager.updateWeather()
+            }
+        }.runTaskTimer(this, 20L, 20L)
+
+        // Zadanie aktualizacji zadań
+        object : org.bukkit.scheduler.BukkitRunnable() {
+            override fun run() {
+                taskManager.updateTasks()
+            }
+        }.runTaskTimer(this, 20L, 20L)
+
+        // Zadanie aktualizacji wizyt
+        object : org.bukkit.scheduler.BukkitRunnable() {
+            override fun run() {
+                visitManager.updateVisits()
+            }
+        }.runTaskTimer(this, 20L, 20L)
+
+        // Zadanie aktualizacji metryk
+        object : org.bukkit.scheduler.BukkitRunnable() {
+            override fun run() {
+                metricsManager.updateMetrics()
+            }
+        }.runTaskTimerAsynchronously(this, 20L, 20L)
+
+        // Zadanie sprawdzania stanu pluginu
+        object : org.bukkit.scheduler.BukkitRunnable() {
+            override fun run() {
+                if (!metricsManager.isHealthy()) {
+                    notificationManager.addNotification(
+                        "health",
+                        "Plugin wykazuje problemy z wydajnością!",
+                        NotificationManager.NotificationPriority.HIGH
+                    )
+                }
+            }
+        }.runTaskTimerAsynchronously(this, TimeUnit.MINUTES.toMillis(5) / 50, TimeUnit.MINUTES.toMillis(5) / 50)
+    }
+
+    /**
+     * Zatrzymuje zadania pluginu
+     */
+    private fun stopTasks() {
+        // Zatrzymanie wszystkich zadań
+        server.scheduler.cancelTasks(this)
+    }
+
+    /**
+     * Pobiera raport o stanie pluginu
+     * @return Tekst raportu
+     */
+    fun getStatusReport(): String = metricsManager.generateReport()
 } 

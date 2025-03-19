@@ -1,0 +1,17 @@
+name: PlotsX
+version: '${project.version}'
+main: com.plotsx.PlotsX
+api-version: '1.20'
+authors: [PlotsX]
+description: Advanced plot management system for Minecraft servers
+depend: [CoreProtect]
+softdepend: [LuckPerms, WorldGuard, WorldEdit]
+commands:
+  claim:
+    description: Main command for plot management
+    usage: /<command>
+    aliases: [plot]
+  plot:
+    description: Plot management command
+    usage: /<command> [subcommand]
+    aliases: [claim] 

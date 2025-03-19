@@ -1,0 +1,40 @@
+# PlotsX Configuration
+
+# Default plot radius (in blocks)
+default-plot-radius: 16
+
+# Plot settings
+plot:
+  # Maximum number of co-owners per plot
+  max-co-owners: 5
+  
+  # Whether to allow plot overlapping
+  allow-overlap: false
+  
+  # Whether to require confirmation for plot deletion
+  require-deletion-confirmation: true
+
+# Protection settings
+protection:
+  # Whether to protect against PvP in plots
+  protect-pvp: true
+  
+  # Whether to protect against mob damage in plots
+  protect-mob-damage: true
+  
+  # Whether to allow door/button/lever interactions for non-owners
+  allow-basic-interactions: true
+
+# Messages
+messages:
+  prefix: "&6[PlotsX] &r"
+  plot-created: "&aDziałka została założona pomyślnie!"
+  plot-deleted: "&aDziałka została usunięta!"
+  plot-exists: "&cMasz już założoną działkę!"
+  location-occupied: "&cTa lokalizacja jest już zajęta przez inną działkę!"
+  no-permission: "&cNie masz uprawnień do tej komendy!"
+  player-not-found: "&cNie znaleziono gracza!"
+  co-owner-added: "&aDodano %player% jako współwłaściciela działki!"
+  co-owner-removed: "&aUsunięto %player% ze współwłaścicieli działki!"
+  already-co-owner: "&cTen gracz jest już współwłaścicielem działki!"
+  not-co-owner: "&cTen gracz nie jest współwłaścicielem działki!" 

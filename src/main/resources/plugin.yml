@@ -4,26 +4,38 @@ main: com.plotsx.PlotsX
 api-version: '1.20'
 depend: [Vault]
 softdepend: [CoreProtect]
-authors: [Wupas94]
-description: Advanced plot management plugin with many features
+author: Wupas94
+description: Zaawansowany system działek z wieloma funkcjami
 website: https://github.com/Wupas94/PlotsX
 
 commands:
   plot:
-    description: Main command for plot management
-    usage: /plot help
+    description: Główna komenda do zarządzania działkami
+    usage: |
+      §6PlotsX - Lista komend:
+      §e/plot claim §7- Zajmij działkę
+      §e/plot delete §7- Usuń działkę
+      §e/plot home §7- Teleportuj się na działkę
+      §e/plot info §7- Informacje o działce
+      §e/plot list §7- Lista twoich działek
+      §e/plot trust <gracz> §7- Dodaj zaufanego gracza
+      §e/plot untrust <gracz> §7- Usuń zaufanego gracza
+      §e/plot visit <gracz> §7- Odwiedź działkę gracza
+      §e/plot rate <1-5> §7- Oceń działkę
+      §e/plot flags §7- Zarządzaj flagami działki
+      §e/plot biome §7- Zmień biom działki
     aliases: [p, plots, plotsx]
 
 permissions:
   plotsx.*:
-    description: Gives access to all PlotsX commands and features
+    description: Dostęp do wszystkich funkcji pluginu
     children:
       plotsx.admin: true
       plotsx.user: true
       plotsx.coreprotect.*: true
   
   plotsx.admin:
-    description: Gives access to all administrative commands
+    description: Dostęp do komend administracyjnych
     children:
       plotsx.admin.bypass: true
       plotsx.admin.reload: true
@@ -33,7 +45,7 @@ permissions:
 
   # CoreProtect Integration
   plotsx.coreprotect.*:
-    description: Access to all CoreProtect features
+    description: Dostęp do funkcji CoreProtect
     children:
       plotsx.coreprotect.lookup: true
       plotsx.coreprotect.rollback: true
@@ -41,7 +53,7 @@ permissions:
       plotsx.coreprotect.inspect: true
 
   plotsx.user:
-    description: Gives access to basic plot commands
+    description: Dostęp do podstawowych komend
     children:
       plotsx.plot.claim: true
       plotsx.plot.delete: true
@@ -57,14 +69,14 @@ permissions:
   
   # Level System
   plotsx.level.*:
-    description: Access to all level features
+    description: Dostęp do systemu poziomów
     children:
       plotsx.level.upgrade: true
       plotsx.level.info: true
   
   # Visit System
   plotsx.visit.*:
-    description: Access to all visit features
+    description: Dostęp do systemu wizyt
     children:
       plotsx.visit.teleport: true
       plotsx.visit.rate: true
@@ -73,7 +85,7 @@ permissions:
   
   # Flag System
   plotsx.flags.*:
-    description: Access to all flag features
+    description: Dostęp do systemu flag
     children:
       plotsx.flags.set: true
       plotsx.flags.weather: true
@@ -85,7 +97,7 @@ permissions:
   
   # Schematic System
   plotsx.schematic.*:
-    description: Access to all schematic features
+    description: Dostęp do systemu schematów
     children:
       plotsx.schematic.save: true
       plotsx.schematic.load: true
@@ -95,7 +107,7 @@ permissions:
   
   # Trust System
   plotsx.trust.*:
-    description: Access to all trust features
+    description: Dostęp do systemu zaufanych graczy
     children:
       plotsx.trust.add: true
       plotsx.trust.remove: true
@@ -104,7 +116,7 @@ permissions:
   
   # Task System
   plotsx.tasks.*:
-    description: Access to all task features
+    description: Dostęp do systemu zadań
     children:
       plotsx.tasks.view: true
       plotsx.tasks.progress: true
@@ -113,7 +125,7 @@ permissions:
   
   # Economy System
   plotsx.economy.*:
-    description: Access to all economy features
+    description: Dostęp do systemu ekonomii
     children:
       plotsx.economy.sell: true
       plotsx.economy.buy: true
@@ -123,7 +135,7 @@ permissions:
   
   # Biome System
   plotsx.biome.*:
-    description: Access to all biome features
+    description: Dostęp do systemu biomów
     children:
       plotsx.biome.set: true
       plotsx.biome.growth: true

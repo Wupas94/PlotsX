@@ -8,58 +8,117 @@ import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 
+/**
+ * Integracja z pluginem CoreProtect
+ * @author Wupas94
+ */
 class CoreProtectIntegration(private val plugin: PlotsX) {
     private var coreProtect: CoreProtectAPI? = null
+
+    companion object {
+        private const val NO_PERMISSION_LOOKUP = "§cNie masz uprawnień do sprawdzania historii bloków!"
+        private const val NO_PERMISSION_ROLLBACK = "§cNie masz uprawnień do cofania zmian!"
+        private const val NO_PERMISSION_RESTORE = "§cNie masz uprawnień do przywracania zmian!"
+        private const val NO_PERMISSION_INSPECT = "§cNie masz uprawnień do używania inspektora!"
+        
+        private const val SUCCESS_ROLLBACK = "§aRozpoczęto cofanie zmian..."
+        private const val SUCCESS_RESTORE = "§aRozpoczęto przywracanie zmian..."
+        
+        private const val ERROR_NO_COREPROTECT = "CoreProtect not found! Logging features will be limited."
+        private const val ERROR_INVALID_VERSION = "Unsupported version of CoreProtect! Please update to the latest version."
+        private const val SUCCESS_INIT = "Successfully hooked into CoreProtect!"
+        
+        private const val DEFAULT_LOOKUP_TIME = 86400 // 24 hours in seconds
+    }
 
     fun initialize() {
         val coreProtectPlugin: Plugin? = plugin.server.pluginManager.getPlugin("CoreProtect")
         
         if (coreProtectPlugin == null || coreProtectPlugin !is CoreProtect) {
-            plugin.logger.warning("CoreProtect not found! Logging features will be limited.")
+            plugin.logger.warning(ERROR_NO_COREPROTECT)
             return
         }
 
         val api = coreProtectPlugin.api
         if (api == null || api.APIVersion() < 9) {
-            plugin.logger.warning("Unsupported version of CoreProtect! Please update to the latest version.")
+            plugin.logger.warning(ERROR_INVALID_VERSION)
             return
         }
 
         coreProtect = api
-        plugin.logger.info("Successfully hooked into CoreProtect!")
+        plugin.logger.info(SUCCESS_INIT)
     }
 
+    /**
+     * Loguje postawienie bloku
+     * @param player Gracz, który postawił blok
+     * @param block Postawiony blok
+     */
     fun logBlockPlace(player: Player, block: Block) {
         coreProtect?.logPlacement(player.name, block.location, block.type, block.blockData)
     }
 
+    /**
+     * Loguje zniszczenie bloku
+     * @param player Gracz, który zniszczył blok
+     * @param block Zniszczony blok
+     */
     fun logBlockBreak(player: Player, block: Block) {
         coreProtect?.logRemoval(player.name, block.location, block.type, block.blockData)
     }
 
+    /**
+     * Loguje interakcję z kontenerem
+     * @param player Gracz, który wchodzi w interakcję
+     * @param block Kontener
+     */
     fun logContainerTransaction(player: Player, block: Block) {
         coreProtect?.logContainerTransaction(player.name, block.location)
     }
 
+    /**
+     * Loguje wiadomość na czacie
+     * @param player Gracz, który wysłał wiadomość
+     * @param message Treść wiadomości
+     */
     fun logChat(player: Player, message: String) {
         coreProtect?.logChat(player.name, message)
     }
 
+    /**
+     * Loguje użycie komendy
+     * @param player Gracz, który użył komendy
+     * @param command Użyta komenda
+     */
     fun logCommand(player: Player, command: String) {
         coreProtect?.logCommand(player.name, command)
     }
 
-    fun getBlockHistory(player: Player, location: Location, time: Int = 86400): List<CoreProtectAPI.ParseResult>? {
+    /**
+     * Pobiera historię zmian bloku
+     * @param player Gracz sprawdzający historię
+     * @param location Lokalizacja bloku
+     * @param time Czas w sekundach (domyślnie 24h)
+     * @return Lista zmian lub null jeśli brak uprawnień
+     */
+    fun getBlockHistory(player: Player, location: Location, time: Int = DEFAULT_LOOKUP_TIME): List<CoreProtectAPI.ParseResult>? {
         if (!player.hasPermission("plotsx.coreprotect.lookup")) {
-            player.sendMessage("${PlotsX.PREFIX}${PlotsX.ERROR_COLOR}Nie masz uprawnień do sprawdzania historii bloków!")
+            player.sendMessage(NO_PERMISSION_LOOKUP)
             return null
         }
         return coreProtect?.blockLookup(location.block, time)
     }
 
+    /**
+     * Cofa zmiany w określonym promieniu
+     * @param player Gracz wykonujący rollback
+     * @param time Czas w sekundach
+     * @param radius Promień działania
+     * @return true jeśli operacja się powiodła
+     */
     fun rollback(player: Player, time: Int, radius: Int): Boolean {
         if (!player.hasPermission("plotsx.coreprotect.rollback")) {
-            player.sendMessage("${PlotsX.PREFIX}${PlotsX.ERROR_COLOR}Nie masz uprawnień do cofania zmian!")
+            player.sendMessage(NO_PERMISSION_ROLLBACK)
             return false
         }
 
@@ -74,13 +133,20 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
             player.location
         )
         
-        player.sendMessage("${PlotsX.PREFIX}${PlotsX.SUCCESS_COLOR}Rozpoczęto cofanie zmian...")
+        player.sendMessage(SUCCESS_ROLLBACK)
         return true
     }
 
+    /**
+     * Przywraca zmiany w określonym promieniu
+     * @param player Gracz wykonujący restore
+     * @param time Czas w sekundach
+     * @param radius Promień działania
+     * @return true jeśli operacja się powiodła
+     */
     fun restore(player: Player, time: Int, radius: Int): Boolean {
         if (!player.hasPermission("plotsx.coreprotect.restore")) {
-            player.sendMessage("${PlotsX.PREFIX}${PlotsX.ERROR_COLOR}Nie masz uprawnień do przywracania zmian!")
+            player.sendMessage(NO_PERMISSION_RESTORE)
             return false
         }
 
@@ -95,13 +161,18 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
             player.location
         )
         
-        player.sendMessage("${PlotsX.PREFIX}${PlotsX.SUCCESS_COLOR}Rozpoczęto przywracanie zmian...")
+        player.sendMessage(SUCCESS_RESTORE)
         return true
     }
 
+    /**
+     * Przełącza tryb inspektora dla gracza
+     * @param player Gracz
+     * @return true jeśli operacja się powiodła
+     */
     fun toggleInspector(player: Player): Boolean {
         if (!player.hasPermission("plotsx.coreprotect.inspect")) {
-            player.sendMessage("${PlotsX.PREFIX}${PlotsX.ERROR_COLOR}Nie masz uprawnień do używania inspektora!")
+            player.sendMessage(NO_PERMISSION_INSPECT)
             return false
         }
 
@@ -109,11 +180,7 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
         return true
     }
 
-    fun isEnabled(): Boolean {
-        return coreProtect != null
-    }
+    fun isEnabled(): Boolean = coreProtect != null
 
-    fun getAPI(): CoreProtectAPI? {
-        return coreProtect
-    }
+    fun getAPI(): CoreProtectAPI? = coreProtect
 } 

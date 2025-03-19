@@ -65,7 +65,7 @@ Ten projekt jest licencjonowany na warunkach MIT - zobacz plik [LICENSE](LICENSE
 
 ## Autor
 
-Twórca: Grzegorz/Wupas
+Twórca: Wupas94
 
 ## Wsparcie
 

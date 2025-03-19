@@ -4,6 +4,8 @@ import com.plotsx.managers.PlotManager
 import com.plotsx.managers.ProtectionManager
 import com.plotsx.commands.PlotCommand
 import net.coreprotect.CoreProtect
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import net.kyori.adventure.text.minimessage.MiniMessage
 import net.luckperms.api.LuckPerms
 import org.bukkit.plugin.RegisteredServiceProvider
 import org.bukkit.plugin.java.JavaPlugin
@@ -13,14 +15,22 @@ class PlotsX : JavaPlugin() {
         private set
     lateinit var protectionManager: ProtectionManager
         private set
+    lateinit var adventure: BukkitAudiences
+        private set
+    lateinit var miniMessage: MiniMessage
+        private set
+    
     var coreProtect: CoreProtect? = null
         private set
     var luckPerms: LuckPerms? = null
         private set
 
     override fun onEnable() {
-        saveDefaultConfig()
+        // Inicjalizacja Adventure API
+        adventure = BukkitAudiences.create(this)
+        miniMessage = MiniMessage.miniMessage()
         
+        // Inicjalizacja managerów
         initializeManagers()
         setupIntegrations()
         registerCommands()
@@ -31,6 +41,12 @@ class PlotsX : JavaPlugin() {
 
     override fun onDisable() {
         plotManager.saveAllPlots()
+        
+        // Zamknięcie Adventure API
+        if (::adventure.isInitialized) {
+            adventure.close()
+        }
+        
         logger.info("PlotsX has been disabled!")
     }
 
@@ -81,5 +97,11 @@ class PlotsX : JavaPlugin() {
     companion object {
         const val PLOT_SIZE = 50 // Domyślny rozmiar działki
         const val PLOT_HEIGHT = 256 // Maksymalna wysokość działki
+        
+        // Stałe dla wiadomości
+        const val PREFIX = "<gradient:#00b4d8:#0077b6>[PlotsX]</gradient> "
+        const val SUCCESS_COLOR = "<#2ecc71>"
+        const val ERROR_COLOR = "<#e74c3c>"
+        const val INFO_COLOR = "<#3498db>"
     }
 } 

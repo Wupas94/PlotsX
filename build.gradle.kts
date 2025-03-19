@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm") version "1.9.22"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("xyz.jpenilla.run-paper") version "2.2.2" // Plugin do testowania
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generator plugin.yml
 }
 
 group = "com.plotsx"
@@ -9,8 +11,7 @@ description = "A modern plot management plugin for Minecraft"
 
 repositories {
     mavenCentral()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://repo.papermc.io/repository/maven-public/") // Paper API
     maven("https://repo.codemc.org/repository/maven-public/") // CoreProtect
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceholderAPI
 }
@@ -19,8 +20,12 @@ dependencies {
     // Kotlin
     implementation(kotlin("stdlib"))
     
-    // Spigot API
-    compileOnly("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
+    // Paper API (zamiast Spigot)
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    
+    // Adventure API (nowoczesny system wiadomości)
+    implementation("net.kyori:adventure-api:4.15.0")
+    implementation("net.kyori:adventure-text-minimessage:4.15.0")
     
     // CoreProtect API
     compileOnly("net.coreprotect:coreprotect:22.2")
@@ -32,9 +37,41 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
 }
 
+// Konfiguracja plugin.yml
+bukkit {
+    name = "PlotsX"
+    version = project.version.toString()
+    main = "com.plotsx.PlotsX"
+    apiVersion = "1.20"
+    authors = listOf("Wupas94")
+    
+    depend = listOf("CoreProtect")
+    softDepend = listOf("LuckPerms", "PlaceholderAPI")
+    
+    commands {
+        register("plot") {
+            description = "Główna komenda pluginu PlotsX"
+            aliases = listOf("dzialka", "działka", "p")
+            permission = "plotsx.use"
+            usage = "/plot <akcja>"
+        }
+    }
+    
+    permissions {
+        register("plotsx.use") {
+            description = "Pozwala na używanie podstawowych komend pluginu"
+            default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
+        }
+        register("plotsx.admin") {
+            description = "Dostęp do komend administracyjnych"
+            default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
+        }
+    }
+}
+
 tasks {
     processResources {
-        filesMatching("plugin.yml") {
+        filesMatching("**/*.yml") {
             expand(project.properties)
         }
     }
@@ -43,6 +80,7 @@ tasks {
         archiveClassifier.set("")
         minimize()
         relocate("kotlin", "com.plotsx.kotlin")
+        relocate("net.kyori", "com.plotsx.libs.kyori")
     }
     
     build {
@@ -52,13 +90,14 @@ tasks {
     compileKotlin {
         kotlinOptions {
             jvmTarget = "17"
+            freeCompilerArgs = listOf("-Xjvm-default=all")
         }
     }
     
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "17"
-        }
+    // Konfiguracja serwera testowego
+    runServer {
+        minecraftVersion("1.20.4")
+        jvmArgs("-Xms2G", "-Xmx2G")
     }
 }
 

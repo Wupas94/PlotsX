@@ -118,4 +118,4 @@ Jeśli masz problemy lub pytania:
 
 1. Sprawdź [Wiki](https://github.com/wupas94/plotsx/wiki)
 2. Zgłoś problem w [Issues](https://github.com/wupas94/plotsx/issues)
-3. Dołącz do naszego [Discorda](https://discord.gg/plotsx) 
+3. Dołącz do naszego [Discorda](https://discord.gg/plotsx)

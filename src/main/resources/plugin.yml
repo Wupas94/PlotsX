@@ -3,7 +3,7 @@ version: '${project.version}'
 main: com.plotsx.PlotsX
 api-version: '1.20'
 depend: [Vault]
-softdepend: []
+softdepend: [CoreProtect]
 authors: [Wupas94]
 description: Advanced plot management plugin with many features
 website: https://github.com/Wupas94/PlotsX
@@ -20,6 +20,7 @@ permissions:
     children:
       plotsx.admin: true
       plotsx.user: true
+      plotsx.coreprotect.*: true
   
   plotsx.admin:
     description: Gives access to all administrative commands
@@ -29,7 +30,16 @@ permissions:
       plotsx.admin.delete.other: true
       plotsx.admin.manage.other: true
       plotsx.admin.schematic.preset: true
-  
+
+  # CoreProtect Integration
+  plotsx.coreprotect.*:
+    description: Access to all CoreProtect features
+    children:
+      plotsx.coreprotect.lookup: true
+      plotsx.coreprotect.rollback: true
+      plotsx.coreprotect.restore: true
+      plotsx.coreprotect.inspect: true
+
   plotsx.user:
     description: Gives access to basic plot commands
     children:

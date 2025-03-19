@@ -1,0 +1,10 @@
+<project>
+  <dependencies>
+    <dependency>
+      <groupId>net.coreprotect</groupId>
+      <artifactId>coreprotect</artifactId>
+      <version>21.3</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project> 

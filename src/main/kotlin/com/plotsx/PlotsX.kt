@@ -11,6 +11,7 @@ import com.plotsx.systems.schematics.SchematicManager
 import com.plotsx.systems.tasks.TaskManager
 import com.plotsx.systems.trust.TrustManager
 import com.plotsx.systems.visit.VisitManager
+import com.plotsx.integrations.CoreProtectIntegration
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -35,6 +36,8 @@ class PlotsX : JavaPlugin() {
         private set
     lateinit var biomeManager: BiomeManager
         private set
+    lateinit var coreProtect: CoreProtectIntegration
+        private set
     
     var economy: Economy? = null
         private set
@@ -45,8 +48,9 @@ class PlotsX : JavaPlugin() {
             dataFolder.mkdirs()
         }
 
-        // Setup Vault economy
+        // Setup integrations
         setupEconomy()
+        setupCoreProtect()
 
         // Initialize managers
         plotManager = PlotManager(this)
@@ -93,6 +97,11 @@ class PlotsX : JavaPlugin() {
 
         economy = rsp.provider
         logger.info("Successfully hooked into Vault economy!")
+    }
+
+    private fun setupCoreProtect() {
+        coreProtect = CoreProtectIntegration(this)
+        coreProtect.initialize()
     }
 
     private fun loadData() {

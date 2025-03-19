@@ -1,7 +1,36 @@
-# Compiled class files
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# NetBeans
+nbproject/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Compiled class file
 *.class
 
-# Log files
+# Log file
 *.log
 
 # BlueJ files
@@ -23,25 +52,9 @@
 hs_err_pid*
 replay_pid*
 
-# Maven
-target/
-.mvn/
-mvnw
-mvnw.cmd
+# Minecraft server test directory
+server/
 
-# IDE files
-.idea/
-*.iml
-.vscode/
-.project
-.classpath
-.settings/
-
-# OS generated files
+# Operating System
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db 

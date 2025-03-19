@@ -1,40 +1,47 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.2" // Plugin do testowania
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generator plugin.yml
+    kotlin("jvm") version "1.9.22" apply false
+    id("com.github.johnrengelman.shadow") version "8.1.1" apply false
+    id("xyz.jpenilla.run-paper") version "2.2.2" apply false
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" apply false
 }
 
-group = "com.plotsx"
-version = "1.0-SNAPSHOT"
-description = "A modern plot management plugin for Minecraft"
-
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/") // Paper API
-    maven("https://repo.codemc.org/repository/maven-public/") // CoreProtect
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceholderAPI
-}
-
-dependencies {
-    // Kotlin
-    implementation(kotlin("stdlib"))
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
     
-    // Paper API (zamiast Spigot)
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    group = "com.plotsx"
+    version = "1.0-SNAPSHOT"
     
-    // Adventure API (nowoczesny system wiadomości)
-    implementation("net.kyori:adventure-api:4.15.0")
-    implementation("net.kyori:adventure-text-minimessage:4.15.0")
+    repositories {
+        mavenCentral()
+        maven("https://repo.codemc.org/repository/maven-public/") // CoreProtect
+        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceholderAPI
+    }
     
-    // CoreProtect API
-    compileOnly("net.coreprotect:coreprotect:22.2")
+    dependencies {
+        "implementation"(kotlin("stdlib"))
+        
+        // CoreProtect API
+        "compileOnly"("net.coreprotect:coreprotect:22.2")
+        
+        // LuckPerms API
+        "compileOnly"("net.luckperms:api:5.4")
+        
+        // PlaceholderAPI
+        "compileOnly"("me.clip:placeholderapi:2.11.5")
+    }
     
-    // LuckPerms API
-    compileOnly("net.luckperms:api:5.4")
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs = listOf("-Xjvm-default=all")
+        }
+    }
     
-    // PlaceholderAPI
-    compileOnly("me.clip:placeholderapi:2.11.5")
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
 }
 
 // Konfiguracja plugin.yml

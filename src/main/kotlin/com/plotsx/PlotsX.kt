@@ -5,6 +5,9 @@ import com.plotsx.integrations.CoreProtectIntegration
 import com.plotsx.managers.*
 import com.plotsx.models.Plot
 import com.plotsx.utils.*
+import net.milkbowl.vault.economy.Economy
+import org.bukkit.Bukkit
+import org.bukkit.plugin.RegisteredServiceProvider
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.TimeUnit
 
@@ -55,7 +58,18 @@ class PlotsX : JavaPlugin() {
     lateinit var settings: Settings
         private set
 
+    // Zależności
+    var economy: Economy? = null
+        private set
+
     override fun onEnable() {
+        // Sprawdzenie zależności
+        if (!checkDependencies()) {
+            logger.severe("Plugin został wyłączony z powodu brakujących zależności!")
+            server.pluginManager.disablePlugin(this)
+            return
+        }
+
         // Inicjalizacja narzędzi
         settings = Settings(this)
         messages = Messages(this)
@@ -112,6 +126,44 @@ class PlotsX : JavaPlugin() {
         notificationManager.clearNotifications()
 
         logger.info("PlotsX został pomyślnie wyłączony!")
+    }
+
+    /**
+     * Sprawdza wymagane zależności
+     * @return true jeśli wszystkie zależności są dostępne
+     */
+    private fun checkDependencies(): Boolean {
+        // Sprawdzenie Vault
+        if (!setupEconomy()) {
+            logger.severe("Nie znaleziono pluginu Vault! Plugin wymaga Vault do działania.")
+            return false
+        }
+
+        // Sprawdzenie CoreProtect
+        if (server.pluginManager.getPlugin("CoreProtect") == null) {
+            logger.severe("Nie znaleziono pluginu CoreProtect! Plugin wymaga CoreProtect do działania.")
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Inicjalizuje integrację z Vault
+     * @return true jeśli integracja się powiodła
+     */
+    private fun setupEconomy(): Boolean {
+        if (server.pluginManager.getPlugin("Vault") == null) {
+            return false
+        }
+
+        val rsp: RegisteredServiceProvider<Economy>? = server.servicesManager.getRegistration(Economy::class.java)
+        if (rsp == null) {
+            return false
+        }
+
+        economy = rsp.provider
+        return true
     }
 
     /**

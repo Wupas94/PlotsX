@@ -1,29 +1,162 @@
 # PlotsX Configuration
 
-# Default plot radius (in blocks)
-default-plot-radius: 16
-
 # Plot settings
 plot:
-  # Maximum number of co-owners per plot
-  max-co-owners: 5
+  # Default plot dimensions (in blocks)
+  default-width: 32
+  default-height: 32
   
-  # Whether to allow plot overlapping
-  allow-overlap: false
+  # Minimum and maximum plot dimensions
+  min-width: 16
+  min-height: 16
+  max-width: 128
+  max-height: 128
   
-  # Whether to require confirmation for plot deletion
-  require-deletion-confirmation: true
+  # Plot height limits
+  min-y: 0
+  max-y: 255
+  
+  # Plot spacing (distance between plots)
+  spacing: 2
+  
+  # Plot claiming settings
+  claim:
+    # Cost to claim a plot (requires Vault)
+    cost: 1000
+    # Maximum number of plots per player
+    max-per-player: 3
+    # Worlds where plots can be claimed
+    allowed-worlds:
+      - "world"
+      - "plots"
+    # Biomes where plots can be claimed
+    allowed-biomes:
+      - "PLAINS"
+      - "FOREST"
+      - "DESERT"
+  
+  # Plot expansion settings
+  expand:
+    # Cost per block when expanding a plot
+    cost-per-block: 10
+    # Maximum plot size after expansion
+    max-size: 128
 
 # Protection settings
 protection:
-  # Whether to protect against PvP in plots
-  protect-pvp: true
-  
-  # Whether to protect against mob damage in plots
-  protect-mob-damage: true
-  
-  # Whether to allow door/button/lever interactions for non-owners
-  allow-basic-interactions: true
+  # Whether to enable plot protection
+  enabled: true
+  # Whether to protect against explosions
+  prevent-explosions: true
+  # Whether to protect against fire spread
+  prevent-fire-spread: true
+  # Whether to protect against mob griefing
+  prevent-mob-griefing: true
+  # Whether to protect against pistons
+  prevent-pistons: true
+  # Whether to protect against liquid flow
+  prevent-liquid-flow: true
+
+# Trust settings
+trust:
+  # Maximum number of trusted players per plot
+  max-trusted: 10
+  # Whether to inherit trust from parent plots
+  inherit-trust: true
+  # Default trust flags
+  default-flags:
+    build: false
+    use: true
+    container: false
+    manage: false
+
+# Visit settings
+visit:
+  # Whether to enable plot visits
+  enabled: true
+  # Cost to visit a plot (requires Vault)
+  cost: 100
+  # Cooldown between visits (in seconds)
+  cooldown: 60
+  # Maximum number of visits in history
+  max-history: 100
+
+# Home settings
+home:
+  # Whether to enable plot homes
+  enabled: true
+  # Maximum number of homes per plot
+  max-homes: 5
+  # Cost to set a home (requires Vault)
+  cost: 500
+
+# Rating settings
+rating:
+  # Whether to enable plot ratings
+  enabled: true
+  # Minimum rating value
+  min-rating: 1
+  # Maximum rating value
+  max-rating: 5
+  # Whether to allow self-rating
+  allow-self-rating: false
+
+# Database settings
+database:
+  # Database type (YAML, MySQL, SQLite)
+  type: "YAML"
+  # MySQL settings (if using MySQL)
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "plotsx"
+    username: "root"
+    password: "password"
+    ssl: false
+  # Auto-save interval (in minutes)
+  auto-save: 5
+
+# Backup settings
+backup:
+  # Whether to enable automatic backups
+  enabled: true
+  # Backup interval (in hours)
+  interval: 24
+  # Maximum number of backups to keep
+  max-backups: 7
+  # Whether to compress backups
+  compress: true
+
+# Integration settings
+integrations:
+  # Whether to enable Vault integration
+  vault: true
+  # Whether to enable WorldEdit integration
+  worldedit: true
+  # Whether to enable CoreProtect integration
+  coreprotect: true
+  # Whether to enable PlaceholderAPI integration
+  placeholderapi: true
+
+# Performance settings
+performance:
+  # Whether to use async chunk loading
+  async-chunks: true
+  # Whether to use caching
+  use-cache: true
+  # Cache cleanup interval (in minutes)
+  cache-cleanup: 30
+  # Maximum cache size (in MB)
+  max-cache-size: 64
+
+# Debug settings
+debug:
+  # Whether to enable debug logging
+  enabled: false
+  # Debug log level (INFO, WARNING, SEVERE)
+  level: "INFO"
+  # Whether to log performance metrics
+  log-performance: false
 
 # Messages
 messages:

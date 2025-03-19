@@ -1,12 +1,15 @@
 package com.plotsx.integrations
 
 import com.plotsx.PlotsX
+import com.plotsx.models.Plot
 import net.coreprotect.CoreProtect
 import net.coreprotect.CoreProtectAPI
 import org.bukkit.Location
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
+import java.util.*
+import kotlin.math.max
 
 /**
  * Integracja z pluginem CoreProtect
@@ -17,60 +20,25 @@ import org.bukkit.plugin.Plugin
  * @since 1.0
  */
 class CoreProtectIntegration(private val plugin: PlotsX) {
-    private var coreProtect: CoreProtectAPI? = null
+    private var api: CoreProtectAPI? = null
 
-    companion object {
-        // Permission messages
-        private const val NO_PERMISSION_LOOKUP = "§cNie masz uprawnień do sprawdzania historii bloków!"
-        private const val NO_PERMISSION_ROLLBACK = "§cNie masz uprawnień do cofania zmian!"
-        private const val NO_PERMISSION_RESTORE = "§cNie masz uprawnień do przywracania zmian!"
-        private const val NO_PERMISSION_INSPECT = "§cNie masz uprawnień do używania inspektora!"
-        
-        // Success messages
-        private const val SUCCESS_ROLLBACK = "§aRozpoczęto cofanie zmian..."
-        private const val SUCCESS_RESTORE = "§aRozpoczęto przywracanie zmian..."
-        private const val SUCCESS_INSPECT_ENABLED = "§aWłączono tryb inspektora!"
-        private const val SUCCESS_INSPECT_DISABLED = "§cWyłączono tryb inspektora!"
-        
-        // Error messages
-        private const val ERROR_NO_COREPROTECT = "§cNie znaleziono pluginu CoreProtect! Funkcje logowania będą ograniczone."
-        private const val ERROR_INVALID_VERSION = "§cNiekompatybilna wersja CoreProtect! Zaktualizuj plugin do najnowszej wersji."
-        private const val ERROR_API_NOT_ENABLED = "§cAPI CoreProtect nie jest włączone!"
-        
-        // Success messages
-        private const val SUCCESS_INIT = "§aPoprawnie połączono z CoreProtect!"
-        
-        // Default values
-        private const val DEFAULT_LOOKUP_TIME = 86400 // 24 hours in seconds
-        private const val MIN_API_VERSION = 9
+    init {
+        setupCoreProtect()
     }
 
-    /**
-     * Inicjalizuje integrację z CoreProtect
-     * @return true jeśli inicjalizacja się powiodła
-     */
-    fun initialize(): Boolean {
-        val coreProtectPlugin: Plugin? = plugin.server.pluginManager.getPlugin("CoreProtect")
-        
-        if (coreProtectPlugin == null || coreProtectPlugin !is CoreProtect) {
-            plugin.logger.warning(ERROR_NO_COREPROTECT)
-            return false
+    private fun setupCoreProtect() {
+        val coreProtect = plugin.server.pluginManager.getPlugin("CoreProtect") as? CoreProtect
+        if (coreProtect != null) {
+            api = coreProtect.api
+            if (api?.isEnabled == true && api?.apiVersion() != null) {
+                plugin.logger.info("Successfully hooked into CoreProtect ${api?.apiVersion()}")
+            } else {
+                plugin.logger.warning("Failed to hook into CoreProtect")
+                api = null
+            }
+        } else {
+            plugin.logger.warning("CoreProtect not found")
         }
-
-        val api = coreProtectPlugin.api
-        if (api == null || api.APIVersion() < MIN_API_VERSION) {
-            plugin.logger.warning(ERROR_INVALID_VERSION)
-            return false
-        }
-
-        if (!api.isEnabled) {
-            plugin.logger.warning(ERROR_API_NOT_ENABLED)
-            return false
-        }
-
-        coreProtect = api
-        plugin.logger.info(SUCCESS_INIT)
-        return true
     }
 
     /**
@@ -80,7 +48,7 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * @return true jeśli operacja się powiodła
      */
     fun logBlockPlace(player: Player, block: Block): Boolean =
-        coreProtect?.logPlacement(player.name, block.location, block.type, block.blockData) ?: false
+        api?.logPlacement(player.name, block.location, block.type, block.blockData) ?: false
 
     /**
      * Loguje zniszczenie bloku
@@ -89,7 +57,7 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * @return true jeśli operacja się powiodła
      */
     fun logBlockBreak(player: Player, block: Block): Boolean =
-        coreProtect?.logRemoval(player.name, block.location, block.type, block.blockData) ?: false
+        api?.logRemoval(player.name, block.location, block.type, block.blockData) ?: false
 
     /**
      * Loguje interakcję z kontenerem
@@ -98,7 +66,7 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * @return true jeśli operacja się powiodła
      */
     fun logContainerTransaction(player: Player, block: Block): Boolean =
-        coreProtect?.logContainerTransaction(player.name, block.location) ?: false
+        api?.logContainerTransaction(player.name, block.location) ?: false
 
     /**
      * Loguje wiadomość na czacie
@@ -107,7 +75,7 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * @return true jeśli operacja się powiodła
      */
     fun logChat(player: Player, message: String): Boolean =
-        coreProtect?.logChat(player.name, message) ?: false
+        api?.logChat(player.name, message) ?: false
 
     /**
      * Loguje użycie komendy
@@ -116,7 +84,7 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * @return true jeśli operacja się powiodła
      */
     fun logCommand(player: Player, command: String): Boolean =
-        coreProtect?.logCommand(player.name, command) ?: false
+        api?.logCommand(player.name, command) ?: false
 
     /**
      * Pobiera historię zmian bloku
@@ -126,13 +94,13 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * @return Lista zmian lub null jeśli brak uprawnień
      * @throws IllegalStateException gdy API nie jest dostępne
      */
-    fun getBlockHistory(player: Player, location: Location, time: Int = DEFAULT_LOOKUP_TIME): List<CoreProtectAPI.ParseResult>? {
+    fun getBlockHistory(player: Player, location: Location, time: Int = 86400): List<CoreProtectAPI.ParseResult>? {
         if (!player.hasPermission("plotsx.coreprotect.lookup")) {
-            player.sendMessage(NO_PERMISSION_LOOKUP)
+            player.sendMessage("§cNie masz uprawnień do sprawdzania historii bloków!")
             return null
         }
 
-        val api = coreProtect ?: throw IllegalStateException(ERROR_API_NOT_ENABLED)
+        val api = this.api ?: throw IllegalStateException("§cAPI CoreProtect nie jest włączone!")
         return api.blockLookup(location.block, time)
     }
 
@@ -140,30 +108,30 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * Cofa zmiany w określonym promieniu
      * @param player Gracz wykonujący rollback
      * @param time Czas w sekundach
-     * @param radius Promień działania
+     * @param distance Promień działania
      * @return true jeśli operacja się powiodła
      * @throws IllegalStateException gdy API nie jest dostępne
      */
-    fun rollback(player: Player, time: Int, radius: Int): Boolean {
+    fun rollback(player: Player, time: Int, distance: Int): Boolean {
         if (!player.hasPermission("plotsx.coreprotect.rollback")) {
-            player.sendMessage(NO_PERMISSION_ROLLBACK)
+            player.sendMessage("§cNie masz uprawnień do cofania zmian!")
             return false
         }
 
-        val api = coreProtect ?: throw IllegalStateException(ERROR_API_NOT_ENABLED)
+        val api = this.api ?: throw IllegalStateException("§cAPI CoreProtect nie jest włączone!")
         val success = api.performRollback(
             time,
-            listOf(player.name),
+            player.name,
             null,
             null,
             null,
             null,
-            radius,
+            distance,
             player.location
         )
         
         if (success) {
-            player.sendMessage(SUCCESS_ROLLBACK)
+            player.sendMessage("§aRozpoczęto cofanie zmian...")
         }
         return success
     }
@@ -172,30 +140,30 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * Przywraca zmiany w określonym promieniu
      * @param player Gracz wykonujący restore
      * @param time Czas w sekundach
-     * @param radius Promień działania
+     * @param distance Promień działania
      * @return true jeśli operacja się powiodła
      * @throws IllegalStateException gdy API nie jest dostępne
      */
-    fun restore(player: Player, time: Int, radius: Int): Boolean {
+    fun restore(player: Player, time: Int, distance: Int): Boolean {
         if (!player.hasPermission("plotsx.coreprotect.restore")) {
-            player.sendMessage(NO_PERMISSION_RESTORE)
+            player.sendMessage("§cNie masz uprawnień do przywracania zmian!")
             return false
         }
 
-        val api = coreProtect ?: throw IllegalStateException(ERROR_API_NOT_ENABLED)
+        val api = this.api ?: throw IllegalStateException("§cAPI CoreProtect nie jest włączone!")
         val success = api.performRestore(
             time,
-            listOf(player.name),
+            player.name,
             null,
             null,
             null,
             null,
-            radius,
+            distance,
             player.location
         )
         
         if (success) {
-            player.sendMessage(SUCCESS_RESTORE)
+            player.sendMessage("§aRozpoczęto przywracanie zmian...")
         }
         return success
     }
@@ -208,15 +176,15 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      */
     fun toggleInspector(player: Player): Boolean {
         if (!player.hasPermission("plotsx.coreprotect.inspect")) {
-            player.sendMessage(NO_PERMISSION_INSPECT)
+            player.sendMessage("§cNie masz uprawnień do używania inspektora!")
             return false
         }
 
-        val api = coreProtect ?: throw IllegalStateException(ERROR_API_NOT_ENABLED)
+        val api = this.api ?: throw IllegalStateException("§cAPI CoreProtect nie jest włączone!")
         val result = api.inspector?.toggleInspector(player) ?: return false
         
         api.parseResult(player, result)
-        player.sendMessage(if (result) SUCCESS_INSPECT_ENABLED else SUCCESS_INSPECT_DISABLED)
+        player.sendMessage(if (result) "§aWłączono tryb inspektora!" else "§cWyłączono tryb inspektora!")
         return true
     }
 
@@ -224,11 +192,66 @@ class CoreProtectIntegration(private val plugin: PlotsX) {
      * Sprawdza czy integracja jest włączona
      * @return true jeśli API jest dostępne
      */
-    fun isEnabled(): Boolean = coreProtect != null
+    fun isEnabled(): Boolean = api?.isEnabled == true
 
     /**
      * Zwraca instancję API CoreProtect
      * @return API lub null jeśli nie jest dostępne
      */
-    fun getAPI(): CoreProtectAPI? = coreProtect
+    fun getAPI(): CoreProtectAPI? = api
+
+    fun rollbackPlot(plot: Plot, time: Int, player: Player? = null): Boolean {
+        val api = this.api ?: return false
+        val width = plot.x2 - plot.x1
+        val height = plot.z2 - plot.z1
+        val maxDimension = max(width, height)
+
+        return api.performRollback(
+            time,
+            player?.name,
+            null,
+            null,
+            null,
+            null,
+            maxDimension,
+            plot.center
+        )
+    }
+
+    fun restorePlot(plot: Plot, time: Int, player: Player? = null): Boolean {
+        val api = this.api ?: return false
+        val width = plot.x2 - plot.x1
+        val height = plot.z2 - plot.z1
+        val maxDimension = max(width, height)
+
+        return api.performRestore(
+            time,
+            player?.name,
+            null,
+            null,
+            null,
+            null,
+            maxDimension,
+            plot.center
+        )
+    }
+
+    fun lookupBlock(block: Block, time: Int): List<Array<Any>>? {
+        val api = this.api ?: return null
+        return api.blockLookup(block, time)
+    }
+
+    fun lookupPlayer(player: String, time: Int, location: Location? = null): List<Array<Any>>? {
+        val api = this.api ?: return null
+        return api.performLookup(
+            time,
+            listOf(player),
+            null,
+            null,
+            null,
+            null,
+            if (location != null) 0 else -1,
+            location
+        )
+    }
 } 

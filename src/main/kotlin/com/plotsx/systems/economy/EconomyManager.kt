@@ -56,6 +56,10 @@ class EconomyManager(private val plugin: PlotsX) {
         plotRentals[plot.id] = RentalInfo(price, duration)
     }
 
+    fun getRentalInfo(plot: Plot): RentalInfo? {
+        return plotRentals[plot.id]
+    }
+
     fun rentPlot(player: Player, plot: Plot): Boolean {
         val rentalInfo = plotRentals[plot.id] ?: return false
         val economy = plugin.economy ?: return false
@@ -72,49 +76,56 @@ class EconomyManager(private val plugin: PlotsX) {
             owner.sendMessage("§aGracz ${player.name} wynajął twoją działkę za ${rentalInfo.price}!")
         }
 
-        // Set rental period
-        rentalInfo.currentTenant = player.uniqueId
-        rentalInfo.expirationTime = System.currentTimeMillis() + (rentalInfo.duration * 60 * 1000)
+        // Set rental
+        plot.rentedTo = player.uniqueId
+        plot.rentalExpiry = System.currentTimeMillis() + rentalInfo.duration
+        plugin.plotManager.savePlot(plot)
 
         player.sendMessage("§aWynająłeś działkę za ${rentalInfo.price}!")
         return true
     }
 
-    fun startAuction(plot: Plot, startingBid: Double, duration: Long) {
-        plotAuctions[plot.id] = AuctionInfo(
-            startingBid,
-            System.currentTimeMillis() + (duration * 60 * 1000)
-        )
+    fun setAuction(plot: Plot, startingPrice: Double, duration: Long) {
+        if (startingPrice <= 0) {
+            plotAuctions.remove(plot.id)
+            return
+        }
+        plotAuctions[plot.id] = AuctionInfo(startingPrice, duration, System.currentTimeMillis())
     }
 
-    fun placeBid(player: Player, plot: Plot, amount: Double): Boolean {
-        val auction = plotAuctions[plot.id] ?: return false
+    fun getAuctionInfo(plot: Plot): AuctionInfo? {
+        return plotAuctions[plot.id]
+    }
+
+    fun bidOnPlot(player: Player, plot: Plot, amount: Double): Boolean {
+        val auctionInfo = plotAuctions[plot.id] ?: return false
         val economy = plugin.economy ?: return false
 
-        if (amount <= auction.currentBid) {
-            player.sendMessage("§cOferta musi być wyższa niż obecna! (Minimum: ${auction.currentBid + 1})")
+        if (amount <= auctionInfo.currentPrice) {
+            player.sendMessage("§cOferta musi być wyższa niż obecna cena! (Obecna: ${auctionInfo.currentPrice})")
             return false
         }
 
         if (economy.getBalance(player) < amount) {
-            player.sendMessage("§cNie masz wystarczająco pieniędzy!")
+            player.sendMessage("§cNie masz wystarczająco pieniędzy! (Potrzeba: $amount)")
             return false
         }
 
-        // Refund previous bidder
-        auction.currentBidder?.let { previousBidder ->
-            plugin.server.getPlayer(previousBidder)?.let { player ->
-                economy.depositPlayer(player, auction.currentBid)
-                player.sendMessage("§aTwoja oferta została przebita! Zwrócono ${auction.currentBid}")
+        // Transfer money
+        economy.withdrawPlayer(player, amount)
+        auctionInfo.currentBidder?.let { oldBidder ->
+            plugin.server.getPlayer(oldBidder)?.let { oldPlayer ->
+                economy.depositPlayer(oldPlayer, auctionInfo.currentPrice)
+                oldPlayer.sendMessage("§cTwoja oferta na działkę została przebita!")
             }
         }
 
-        // Place new bid
-        economy.withdrawPlayer(player, amount)
-        auction.currentBid = amount
-        auction.currentBidder = player.uniqueId
+        // Update auction
+        auctionInfo.currentPrice = amount
+        auctionInfo.currentBidder = player.uniqueId
+        auctionInfo.lastBidTime = System.currentTimeMillis()
 
-        player.sendMessage("§aZłożyłeś ofertę: $amount!")
+        player.sendMessage("§aZłożyłeś ofertę $amount na działkę!")
         return true
     }
 
@@ -122,17 +133,15 @@ class EconomyManager(private val plugin: PlotsX) {
         plotShops.getOrPut(plot.id) { mutableListOf() }.add(item)
     }
 
-    fun removeShopItem(plot: Plot, index: Int) {
-        plotShops[plot.id]?.removeAt(index)
+    fun removeShopItem(plot: Plot, item: ShopItem) {
+        plotShops[plot.id]?.remove(item)
     }
 
     fun getShopItems(plot: Plot): List<ShopItem> {
         return plotShops[plot.id] ?: emptyList()
     }
 
-    fun buyShopItem(player: Player, plot: Plot, index: Int): Boolean {
-        val items = plotShops[plot.id] ?: return false
-        val item = items.getOrNull(index) ?: return false
+    fun buyShopItem(player: Player, plot: Plot, item: ShopItem): Boolean {
         val economy = plugin.economy ?: return false
 
         if (economy.getBalance(player) < item.price) {
@@ -144,12 +153,13 @@ class EconomyManager(private val plugin: PlotsX) {
         economy.withdrawPlayer(player, item.price)
         plugin.server.getPlayer(plot.owner)?.let { owner ->
             economy.depositPlayer(owner, item.price)
-            owner.sendMessage("§aGracz ${player.name} kupił ${item.itemStack.type} za ${item.price}!")
+            owner.sendMessage("§aGracz ${player.name} kupił ${item.name} za ${item.price}!")
         }
 
         // Give item
         player.inventory.addItem(item.itemStack)
-        player.sendMessage("§aKupiłeś ${item.itemStack.type} za ${item.price}!")
+
+        player.sendMessage("§aKupiłeś ${item.name} za ${item.price}!")
         return true
     }
 
@@ -204,18 +214,19 @@ class EconomyManager(private val plugin: PlotsX) {
 
 data class RentalInfo(
     val price: Double,
-    val duration: Long, // in minutes
-    var currentTenant: UUID? = null,
-    var expirationTime: Long? = null
+    val duration: Long
 )
 
 data class AuctionInfo(
-    var currentBid: Double,
-    val endTime: Long,
-    var currentBidder: UUID? = null
+    var currentPrice: Double,
+    val duration: Long,
+    val startTime: Long,
+    var currentBidder: UUID? = null,
+    var lastBidTime: Long = startTime
 )
 
 data class ShopItem(
-    val itemStack: org.bukkit.inventory.ItemStack,
-    val price: Double
+    val name: String,
+    val price: Double,
+    val itemStack: org.bukkit.inventory.ItemStack
 ) 

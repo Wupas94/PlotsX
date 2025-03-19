@@ -3,94 +3,106 @@ package com.plotsx.gui
 import com.plotsx.PlotsX
 import com.plotsx.models.Plot
 import org.bukkit.Bukkit
+import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
 
 class PlotFlagsGUI(
     private val plugin: PlotsX,
     private val player: Player,
     private val plot: Plot
 ) {
-    private val flagSlots = mutableMapOf<Int, String>()
-
     fun open() {
-        val gui = Bukkit.createInventory(null, 27, "§6Zarządzanie flagami działki")
+        val inventory = Bukkit.createInventory(null, 27, "${ChatColor.DARK_PURPLE}Flagi działki")
 
         // PvP flag
-        createFlagItem(
+        val pvpItem = createToggleItem(
             Material.DIAMOND_SWORD,
-            "§ePvP",
-            "§7Zezwól na walkę PvP na działce",
-            plot.isPvpEnabled
-        ).also {
-            gui.setItem(10, it)
-            flagSlots[10] = "pvp"
-        }
+            "PvP",
+            plot.isPvpEnabled,
+            "Włącz/wyłącz PvP na działce"
+        )
+        inventory.setItem(10, pvpItem)
 
         // Mob damage flag
-        createFlagItem(
+        val mobDamageItem = createToggleItem(
             Material.ZOMBIE_HEAD,
-            "§eOchrona przed mobami",
-            "§7Zezwól na ataki mobów na działce",
-            plot.isMobDamageEnabled
-        ).also {
-            gui.setItem(11, it)
-            flagSlots[11] = "mob_damage"
-        }
+            "Ochrona przed mobami",
+            plot.isMobDamageEnabled,
+            "Włącz/wyłącz ochronę przed mobami"
+        )
+        inventory.setItem(11, mobDamageItem)
 
         // Basic interactions flag
-        createFlagItem(
-            Material.LEVER,
-            "§ePodstawowe interakcje",
-            "§7Zezwól na używanie drzwi, przycisków itp.",
-            plot.isBasicInteractionsEnabled
-        ).also {
-            gui.setItem(12, it)
-            flagSlots[12] = "basic_interactions"
-        }
+        val interactionsItem = createToggleItem(
+            Material.CHEST,
+            "Podstawowe interakcje",
+            plot.isBasicInteractionsEnabled,
+            "Włącz/wyłącz podstawowe interakcje"
+        )
+        inventory.setItem(12, interactionsItem)
 
-        // Back button
-        ItemStack(Material.BARRIER).apply {
+        // Close button
+        val closeItem = ItemStack(Material.BARRIER).apply {
             itemMeta = itemMeta?.apply {
-                setDisplayName("§cPowrót")
-                lore = listOf("§7Kliknij, aby wrócić")
+                setDisplayName("${ChatColor.RED}Zamknij")
+                lore = listOf("${ChatColor.GRAY}Kliknij, aby zamknąć")
             }
-        }.also {
-            gui.setItem(26, it)
         }
+        inventory.setItem(26, closeItem)
 
-        player.openInventory(gui)
+        player.openInventory(inventory)
     }
 
-    private fun createFlagItem(material: Material, name: String, description: String, enabled: Boolean): ItemStack {
+    private fun createToggleItem(
+        material: Material,
+        name: String,
+        enabled: Boolean,
+        description: String
+    ): ItemStack {
         return ItemStack(material).apply {
             itemMeta = itemMeta?.apply {
-                setDisplayName(name)
+                setDisplayName("${ChatColor.YELLOW}$name")
                 lore = listOf(
-                    description,
+                    "${ChatColor.GRAY}$description",
                     "",
-                    if (enabled) "§aWłączone" else "§cWyłączone",
-                    "§7Kliknij, aby ${if (enabled) "wyłączyć" else "włączyć"}"
+                    if (enabled) "${ChatColor.GREEN}Włączone" else "${ChatColor.RED}Wyłączone"
                 )
             }
         }
     }
 
-    fun handleClick(slot: Int) {
-        if (slot == 26) { // Back button
-            player.closeInventory()
-            return
+    fun handleClick(slot: Int): Boolean {
+        when (slot) {
+            10 -> togglePvP()
+            11 -> toggleMobDamage()
+            12 -> toggleBasicInteractions()
+            26 -> {
+                player.closeInventory()
+                return true
+            }
         }
+        return false
+    }
 
-        when (flagSlots[slot]) {
-            "pvp" -> plot.isPvpEnabled = !plot.isPvpEnabled
-            "mob_damage" -> plot.isMobDamageEnabled = !plot.isMobDamageEnabled
-            "basic_interactions" -> plot.isBasicInteractionsEnabled = !plot.isBasicInteractionsEnabled
-            else -> return
-        }
+    private fun togglePvP() {
+        plot.isPvpEnabled = !plot.isPvpEnabled
+        player.sendMessage("${ChatColor.GREEN}PvP zostało ${if (plot.isPvpEnabled) "włączone" else "wyłączone"}!")
+        open() // Refresh the GUI
+    }
 
-        // Refresh GUI
-        open()
+    private fun toggleMobDamage() {
+        plot.isMobDamageEnabled = !plot.isMobDamageEnabled
+        player.sendMessage("${ChatColor.GREEN}Ochrona przed mobami została ${if (plot.isMobDamageEnabled) "włączona" else "wyłączona"}!")
+        open() // Refresh the GUI
+    }
+
+    private fun toggleBasicInteractions() {
+        plot.isBasicInteractionsEnabled = !plot.isBasicInteractionsEnabled
+        player.sendMessage("${ChatColor.GREEN}Podstawowe interakcje zostały ${if (plot.isBasicInteractionsEnabled) "włączone" else "wyłączone"}!")
+        open() // Refresh the GUI
     }
 } 

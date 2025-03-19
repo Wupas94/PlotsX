@@ -1,0 +1,142 @@
+# Messages for PlotsX plugin
+
+# General messages
+prefix: "&8[&bPlotsX&8] &7"
+no-permission: "&cNie masz uprawnień do tej komendy!"
+player-only: "&cTa komenda jest dostępna tylko dla graczy!"
+plot-not-found: "&cNie znaleziono działki!"
+plot-not-owner: "&cNie jesteś właścicielem tej działki!"
+plot-not-trusted: "&cNie masz dostępu do tej działki!"
+plot-limit-reached: "&cOsiągnąłeś limit działek!"
+plot-already-exists: "&cMasz już działkę w tym miejscu!"
+plot-too-close: "&cNie możesz stworzyć działki tak blisko innej!"
+plot-world-disabled: "&cNie możesz tworzyć działek w tym świecie!"
+plot-invalid-dimensions: "&cNieprawidłowe wymiary działki!"
+plot-too-small: "&cDziałka jest za mała! Minimalne wymiary to: &e%width%x%height%"
+plot-too-large: "&cDziałka jest za duża! Maksymalne wymiary to: &e%width%x%height%"
+
+# Plot claiming messages
+plot-claimed: "&aPomyślnie zajęto działkę o wymiarach {width}x{height} bloków!"
+plot-claim-failed: "&cNie udało się zająć działki! Sprawdź czy masz wystarczająco pieniędzy i czy lokalizacja jest dostępna."
+plot-claim-overlap: "&cNie możesz zająć tej działki, ponieważ koliduje z inną działką!"
+plot-claim-cost: "&eKoszt zajęcia działki: &6${cost}"
+
+# Plot deletion messages
+plot-deleted: "&aPomyślnie usunięto działkę!"
+plot-delete-failed: "&cNie udało się usunąć działki!"
+plot-delete-confirm: "&eCzy na pewno chcesz usunąć tę działkę? Użyj &6/plot delete confirm &eaby potwierdzić."
+
+# Plot expansion messages
+plot-expanded: "&aPomyślnie rozszerzono działkę do wymiarów {width}x{height} bloków!"
+plot-expand-failed: "&cNie udało się rozszerzyć działki! Sprawdź czy masz wystarczająco pieniędzy."
+plot-expand-max: "&cOsiągnięto maksymalny promień działki!"
+plot-expand-cost: "&eKoszt rozszerzenia działki: &6${cost}"
+
+# Plot moving messages
+plot-moved: "&aPomyślnie przeniesiono działkę!"
+plot-move-failed: "&cNie udało się przenieść działki! Sprawdź czy masz wystarczająco pieniędzy."
+plot-move-cost: "&eKoszt przeniesienia działki: &6${cost}"
+
+# Plot merging messages
+plot-merged: "&aPomyślnie połączono działki!"
+plot-merge-failed: "&cNie udało się połączyć działek! Sprawdź czy masz wystarczająco pieniędzy."
+plot-merge-cost: "&eKoszt połączenia działek: &6${cost}"
+
+# Plot splitting messages
+plot-split: "&aPomyślnie podzielono działkę!"
+plot-split-failed: "&cNie udało się podzielić działki! Sprawdź czy masz wystarczająco pieniędzy."
+plot-split-cost: "&eKoszt podziału działki: &6${cost}"
+
+# Plot swapping messages
+plot-swapped: "&aPomyślnie zamieniono działki miejscami!"
+plot-swap-failed: "&cNie udało się zamienić działek miejscami! Sprawdź czy masz wystarczająco pieniędzy."
+plot-swap-cost: "&eKoszt zamiany działek: &6${cost}"
+
+# Plot protection messages
+plot-protected: "&aPomyślnie włączono ochronę działki!"
+plot-unprotected: "&aPomyślnie wyłączono ochronę działki!"
+plot-protection-failed: "&cNie udało się zmienić ustawień ochrony działki!"
+
+# Plot trust messages
+trust-added: "&aPomyślnie dodano zaufanego gracza!"
+trust-removed: "&aPomyślnie usunięto zaufanego gracza!"
+trust-exists: "&cTen gracz jest już zaufany!"
+trust-not-found: "&cTen gracz nie jest zaufany!"
+trust-limit: "&cOsiągnięto limit zaufanych graczy!"
+
+# Plot weather messages
+weather-changed: "&aPomyślnie zmieniono pogodę na działce na {weather}!"
+weather-failed: "&cNie udało się zmienić pogody na działce!"
+
+# Plot time messages
+time-changed: "&aPomyślnie zmieniono czas na działce na {time}!"
+time-failed: "&cNie udało się zmienić czasu na działce!"
+
+# Plot biome messages
+biome-changed: "&aPomyślnie zmieniono biom na działce na {biome}!"
+biome-failed: "&cNie udało się zmienić biomu na działce!"
+
+# Plot schematic messages
+schematic-saved: "&aPomyślnie zapisano schemat działki jako {name}!"
+schematic-loaded: "&aPomyślnie załadowano schemat {name} na działkę!"
+schematic-deleted: "&aPomyślnie usunięto schemat {name}!"
+schematic-failed: "&cNie udało się wykonać operacji na schemacie!"
+
+# Plot rating messages
+rating-added: "&aPomyślnie dodano ocenę {rating}/5 dla działki!"
+rating-removed: "&aPomyślnie usunięto ocenę działki!"
+rating-failed: "&cNie udało się zmienić oceny działki!"
+
+# Plot visit messages
+visit-started: "&aRozpoczęto wizytę na działce {owner}!"
+visit-ended: "&aZakończono wizytę na działce {owner}!"
+visit-failed: "&cNie udało się rozpocząć wizyty na działce!"
+
+# Plot info messages
+plot-info: |
+  &6=== Informacje o działce ===
+  &eWłaściciel: &f{owner}
+  &eWymiary: &f{width}x{height}
+  &eData utworzenia: &f{created}
+  &eOstatnia modyfikacja: &f{modified}
+  &eOcena: &f{rating}/5 ({rating_count} ocen)
+  &eWizyty: &f{visits}
+  &eZaufani gracze: &f{trusted_players}
+  &eFlagi:
+  &f- PvP: {pvp}
+  &f- Ochrona przed mobami: {mob_protection}
+  &f- Podstawowe interakcje: {basic_interactions}
+
+# Plot list messages
+plot-list-header: "&9=== Lista działek ==="
+plot-list-entry: "&e- {id} (Wymiary: {width}x{height})"
+plot-list-footer: "&9=================="
+
+# Plot help messages
+help-header: "&9=== PlotsX - Pomoc ==="
+help-claim: "&e/plot claim &7- Zajmij działkę"
+help-delete: "&e/plot delete &7- Usuń działkę"
+help-expand: "&e/plot expand [wymiary] &7- Rozszerz działkę"
+help-move: "&e/plot move &7- Przenieś działkę"
+help-merge: "&e/plot merge &7- Połącz działki"
+help-split: "&e/plot split &7- Podziel działkę"
+help-swap: "&e/plot swap &7- Zamień działki miejscami"
+help-protect: "&e/plot protect &7- Zarządzaj ochroną działki"
+help-trust: "&e/plot trust <gracz> &7- Dodaj zaufanego gracza"
+help-weather: "&e/plot weather <pogoda> &7- Ustaw pogodę na działce"
+help-time: "&e/plot time <czas> &7- Ustaw czas na działce"
+help-biome: "&e/plot biome <biom> &7- Ustaw biom na działce"
+help-schematic: "&e/plot schematic <save|load|delete> [nazwa] &7- Zarządzaj schematami"
+help-rating: "&e/plot rate <ocena> &7- Oceń działkę"
+help-visit: "&e/plot visit <gracz> &7- Odwiedź działkę gracza"
+help-info: "&e/plot info [gracz] &7- Pokaż informacje o działce"
+help-list: "&e/plot list [gracz] &7- Pokaż listę działek"
+help-tp: "&e/plot tp <id> &7- Teleportuj się do działki"
+help-set: "&e/plot set <flaga> <wartość> &7- Ustaw flagę"
+help-untrust: "&e/plot untrust <gracz> &7- Usuń zaufanego gracza"
+help-add: "&e/plot add <gracz> &7- Dodaj współwłaściciela"
+help-remove: "&e/plot remove <gracz> &7- Usuń współwłaściciela"
+help-home: "&e/plot home [nazwa] &7- Teleportuj się do domu"
+help-sethome: "&e/plot sethome [nazwa] &7- Ustaw punkt domowy"
+help-delhome: "&e/plot delhome <nazwa> &7- Usuń punkt domowy"
+help-footer: "&9==================" 

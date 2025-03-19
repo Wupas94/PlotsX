@@ -15,12 +15,11 @@ class BiomeManager(private val plugin: PlotsX) {
     private val plotSpreadableBlocks = mutableMapOf<UUID, MutableSet<Material>>()
 
     fun setBiome(plot: Plot, biome: Biome) {
-        val corners = plugin.plotManager.getPlotCorners(plot) ?: return
-        val world = corners.first.world ?: return
+        val world = plot.center.world ?: return
 
         // Change biome for all blocks in plot
-        for (x in corners.first.blockX..corners.second.blockX) {
-            for (z in corners.first.blockZ..corners.second.blockZ) {
+        for (x in plot.x1..plot.x2) {
+            for (z in plot.z1..plot.z2) {
                 world.setBiome(x, z, biome)
             }
         }

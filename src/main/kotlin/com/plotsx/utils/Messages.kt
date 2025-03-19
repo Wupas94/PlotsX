@@ -13,6 +13,18 @@ object Messages {
     private lateinit var plugin: PlotsX
     private lateinit var miniMessage: MiniMessage
 
+    // Predefiniowane wiadomości
+    const val PLOT_CREATED = "${PlotsX.SUCCESS_COLOR}Pomyślnie utworzono działkę!"
+    const val PLOT_DELETED = "${PlotsX.SUCCESS_COLOR}Pomyślnie usunięto działkę!"
+    const val PLOT_EXISTS = "${PlotsX.ERROR_COLOR}Już posiadasz działkę!"
+    const val NO_PERMISSION = "${PlotsX.ERROR_COLOR}Nie masz uprawnień do tej komendy!"
+    const val INVALID_LOCATION = "${PlotsX.ERROR_COLOR}Nie możesz tutaj założyć działki!"
+    const val NOT_YOUR_PLOT = "${PlotsX.ERROR_COLOR}Ta działka nie należy do Ciebie!"
+    const val PLAYER_NOT_FOUND = "${PlotsX.ERROR_COLOR}Nie znaleziono gracza!"
+    const val COOWNER_ADDED = "${PlotsX.SUCCESS_COLOR}Pomyślnie dodano współwłaściciela!"
+    const val COOWNER_REMOVED = "${PlotsX.SUCCESS_COLOR}Pomyślnie usunięto współwłaściciela!"
+    const val FLAG_UPDATED = "${PlotsX.SUCCESS_COLOR}Pomyślnie zaktualizowano flagę!"
+
     fun init(plugin: PlotsX) {
         this.plugin = plugin
         this.miniMessage = plugin.miniMessage
@@ -49,19 +61,5 @@ object Messages {
 
     fun Audience.sendFormattedMessage(message: String) {
         this.sendMessage(miniMessage.deserialize(PlotsX.PREFIX + message))
-    }
-
-    // Predefiniowane wiadomości
-    object Messages {
-        const val PLOT_CREATED = "${PlotsX.SUCCESS_COLOR}Pomyślnie utworzono działkę!"
-        const val PLOT_DELETED = "${PlotsX.SUCCESS_COLOR}Pomyślnie usunięto działkę!"
-        const val PLOT_EXISTS = "${PlotsX.ERROR_COLOR}Już posiadasz działkę!"
-        const val NO_PERMISSION = "${PlotsX.ERROR_COLOR}Nie masz uprawnień do tej komendy!"
-        const val INVALID_LOCATION = "${PlotsX.ERROR_COLOR}Nie możesz tutaj założyć działki!"
-        const val NOT_YOUR_PLOT = "${PlotsX.ERROR_COLOR}Ta działka nie należy do Ciebie!"
-        const val PLAYER_NOT_FOUND = "${PlotsX.ERROR_COLOR}Nie znaleziono gracza!"
-        const val COOWNER_ADDED = "${PlotsX.SUCCESS_COLOR}Pomyślnie dodano współwłaściciela!"
-        const val COOWNER_REMOVED = "${PlotsX.SUCCESS_COLOR}Pomyślnie usunięto współwłaściciela!"
-        const val FLAG_UPDATED = "${PlotsX.SUCCESS_COLOR}Pomyślnie zaktualizowano flagę!"
     }
 } 

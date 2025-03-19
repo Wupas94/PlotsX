@@ -1,13 +1,17 @@
 package com.plotsx
 
+import com.plotsx.commands.PlotCommand
 import com.plotsx.managers.PlotManager
 import com.plotsx.managers.ProtectionManager
-import com.plotsx.commands.PlotCommand
-import net.coreprotect.CoreProtect
-import net.kyori.adventure.platform.bukkit.BukkitAudiences
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.luckperms.api.LuckPerms
-import org.bukkit.plugin.RegisteredServiceProvider
+import com.plotsx.systems.biome.BiomeManager
+import com.plotsx.systems.economy.EconomyManager
+import com.plotsx.systems.flags.FlagManager
+import com.plotsx.systems.levels.PlotLevelManager
+import com.plotsx.systems.schematics.SchematicManager
+import com.plotsx.systems.tasks.TaskManager
+import com.plotsx.systems.trust.TrustManager
+import com.plotsx.systems.visit.VisitManager
+import net.milkbowl.vault.economy.Economy
 import org.bukkit.plugin.java.JavaPlugin
 
 class PlotsX : JavaPlugin() {
@@ -15,83 +19,117 @@ class PlotsX : JavaPlugin() {
         private set
     lateinit var protectionManager: ProtectionManager
         private set
-    lateinit var adventure: BukkitAudiences
+    lateinit var levelManager: PlotLevelManager
         private set
-    lateinit var miniMessage: MiniMessage
+    lateinit var visitManager: VisitManager
+        private set
+    lateinit var flagManager: FlagManager
+        private set
+    lateinit var schematicManager: SchematicManager
+        private set
+    lateinit var trustManager: TrustManager
+        private set
+    lateinit var taskManager: TaskManager
+        private set
+    lateinit var economyManager: EconomyManager
+        private set
+    lateinit var biomeManager: BiomeManager
         private set
     
-    var coreProtect: CoreProtect? = null
-        private set
-    var luckPerms: LuckPerms? = null
+    var economy: Economy? = null
         private set
 
     override fun onEnable() {
-        // Inicjalizacja Adventure API
-        adventure = BukkitAudiences.create(this)
-        miniMessage = MiniMessage.miniMessage()
-        
-        // Inicjalizacja managerów
-        initializeManagers()
-        setupIntegrations()
-        registerCommands()
-        registerEventListeners()
-        
+        // Create data folder
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs()
+        }
+
+        // Setup Vault economy
+        setupEconomy()
+
+        // Initialize managers
+        plotManager = PlotManager(this)
+        protectionManager = ProtectionManager(this)
+        levelManager = PlotLevelManager(this)
+        visitManager = VisitManager(this)
+        flagManager = FlagManager(this)
+        schematicManager = SchematicManager(this)
+        trustManager = TrustManager(this)
+        taskManager = TaskManager(this)
+        economyManager = EconomyManager(this)
+        biomeManager = BiomeManager(this)
+
+        // Register commands
+        getCommand("plot")?.setExecutor(PlotCommand(this))
+
+        // Load data
+        loadData()
+
+        // Start cleanup tasks
+        startCleanupTasks()
+
         logger.info("PlotsX has been enabled!")
     }
 
     override fun onDisable() {
-        plotManager.saveAllPlots()
-        
-        // Zamknięcie Adventure API
-        if (::adventure.isInitialized) {
-            adventure.close()
-        }
+        // Save all data
+        saveData()
         
         logger.info("PlotsX has been disabled!")
     }
 
-    private fun initializeManagers() {
-        plotManager = PlotManager(this)
-        protectionManager = ProtectionManager(this)
+    private fun setupEconomy() {
+        if (server.pluginManager.getPlugin("Vault") == null) {
+            logger.warning("Vault not found! Economy features will be disabled.")
+            return
+        }
+
+        val rsp = server.servicesManager.getRegistration(Economy::class.java)
+        if (rsp == null) {
+            logger.warning("No economy plugin found! Economy features will be disabled.")
+            return
+        }
+
+        economy = rsp.provider
+        logger.info("Successfully hooked into Vault economy!")
     }
 
-    private fun setupIntegrations() {
-        setupCoreProtect()
-        setupLuckPerms()
+    private fun loadData() {
+        plotManager.loadData()
+        levelManager.loadData()
+        visitManager.loadData()
+        flagManager.loadData()
+        schematicManager.loadData()
+        trustManager.loadData()
+        taskManager.loadData()
+        economyManager.loadData()
+        biomeManager.loadData()
     }
 
-    private fun registerCommands() {
-        getCommand("plot")?.setExecutor(PlotCommand(this))
+    private fun saveData() {
+        plotManager.saveData()
+        levelManager.saveData()
+        visitManager.saveData()
+        flagManager.saveData()
+        schematicManager.saveData()
+        trustManager.saveData()
+        taskManager.saveData()
+        economyManager.saveData()
+        biomeManager.saveData()
     }
 
-    private fun registerEventListeners() {
-        server.pluginManager.registerEvents(protectionManager, this)
-    }
+    private fun startCleanupTasks() {
+        // Cleanup expired rentals and auctions
+        server.scheduler.runTaskTimer(this, {
+            economyManager.cleanupExpiredRentals()
+            economyManager.cleanupExpiredAuctions()
+        }, 20L * 60L, 20L * 60L) // Run every minute
 
-    private fun setupCoreProtect() {
-        coreProtect = server.servicesManager
-            .getRegistration(CoreProtect::class.java)
-            ?.provider
-            .also { provider ->
-                if (provider != null) {
-                    logger.info("CoreProtect integration enabled!")
-                } else {
-                    logger.warning("CoreProtect not found! Some features may be limited.")
-                }
-            }
-    }
-
-    private fun setupLuckPerms() {
-        luckPerms = server.servicesManager
-            .getRegistration(LuckPerms::class.java)
-            ?.provider
-            .also { provider ->
-                if (provider != null) {
-                    logger.info("LuckPerms integration enabled!")
-                } else {
-                    logger.info("LuckPerms not found. Running without permissions integration.")
-                }
-            }
+        // Cleanup expired trust
+        server.scheduler.runTaskTimer(this, {
+            trustManager.cleanupExpiredTrust()
+        }, 20L * 60L, 20L * 60L) // Run every minute
     }
 
     companion object {

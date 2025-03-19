@@ -2,16 +2,120 @@ name: PlotsX
 version: '${project.version}'
 main: com.plotsx.PlotsX
 api-version: '1.20'
-authors: [PlotsX]
-description: Advanced plot management system for Minecraft servers
-depend: [CoreProtect]
-softdepend: [LuckPerms, WorldGuard, WorldEdit]
+depend: [Vault]
+softdepend: []
+authors: [Wupas94]
+description: Advanced plot management plugin with many features
+website: https://github.com/Wupas94/PlotsX
+
 commands:
-  claim:
-    description: Main command for plot management
-    usage: /<command>
-    aliases: [plot]
   plot:
-    description: Plot management command
-    usage: /<command> [subcommand]
-    aliases: [claim] 
+    description: Main command for plot management
+    usage: /plot help
+    aliases: [p, plots, plotsx]
+
+permissions:
+  plotsx.*:
+    description: Gives access to all PlotsX commands and features
+    children:
+      plotsx.admin: true
+      plotsx.user: true
+  
+  plotsx.admin:
+    description: Gives access to all administrative commands
+    children:
+      plotsx.admin.bypass: true
+      plotsx.admin.reload: true
+      plotsx.admin.delete.other: true
+      plotsx.admin.manage.other: true
+      plotsx.admin.schematic.preset: true
+  
+  plotsx.user:
+    description: Gives access to basic plot commands
+    children:
+      plotsx.plot.claim: true
+      plotsx.plot.delete: true
+      plotsx.plot.home: true
+      plotsx.plot.info: true
+      plotsx.plot.list: true
+      plotsx.plot.trust: true
+      plotsx.plot.untrust: true
+      plotsx.plot.visit: true
+      plotsx.plot.rate: true
+      plotsx.plot.flags: true
+      plotsx.plot.biome: true
+  
+  # Level System
+  plotsx.level.*:
+    description: Access to all level features
+    children:
+      plotsx.level.upgrade: true
+      plotsx.level.info: true
+  
+  # Visit System
+  plotsx.visit.*:
+    description: Access to all visit features
+    children:
+      plotsx.visit.teleport: true
+      plotsx.visit.rate: true
+      plotsx.visit.setspawn: true
+      plotsx.visit.top: true
+  
+  # Flag System
+  plotsx.flags.*:
+    description: Access to all flag features
+    children:
+      plotsx.flags.set: true
+      plotsx.flags.weather: true
+      plotsx.flags.time: true
+      plotsx.flags.mobs: true
+      plotsx.flags.particles: true
+      plotsx.flags.feed: true
+      plotsx.flags.messages: true
+  
+  # Schematic System
+  plotsx.schematic.*:
+    description: Access to all schematic features
+    children:
+      plotsx.schematic.save: true
+      plotsx.schematic.load: true
+      plotsx.schematic.backup: true
+      plotsx.schematic.restore: true
+      plotsx.schematic.copy: true
+  
+  # Trust System
+  plotsx.trust.*:
+    description: Access to all trust features
+    children:
+      plotsx.trust.add: true
+      plotsx.trust.remove: true
+      plotsx.trust.list: true
+      plotsx.trust.temp: true
+  
+  # Task System
+  plotsx.tasks.*:
+    description: Access to all task features
+    children:
+      plotsx.tasks.view: true
+      plotsx.tasks.progress: true
+      plotsx.tasks.complete: true
+      plotsx.tasks.rewards: true
+  
+  # Economy System
+  plotsx.economy.*:
+    description: Access to all economy features
+    children:
+      plotsx.economy.sell: true
+      plotsx.economy.buy: true
+      plotsx.economy.rent: true
+      plotsx.economy.auction: true
+      plotsx.economy.shop: true
+  
+  # Biome System
+  plotsx.biome.*:
+    description: Access to all biome features
+    children:
+      plotsx.biome.set: true
+      plotsx.biome.growth: true
+      plotsx.biome.mobs: true
+      plotsx.biome.spread: true 
